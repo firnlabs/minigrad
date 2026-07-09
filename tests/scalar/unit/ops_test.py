@@ -1,174 +1,152 @@
 """Tests for `ops.py`."""
 
 import math
-import unittest
+
+import pytest
 
 from minigrad.scalar import Scalar, ops
 
+# x, y, upstream_grad
+BINARY_OPERAND_CASES = [(2.0, 3.0, 2.0)]
 
-class ValueTest(unittest.TestCase):
-    def test_add_forward(self) -> None:
-        a_val = 2.0
-        b_val = 3.0
-        a = Scalar(a_val)
-        b = Scalar(b_val)
-        exp_data = a_val + b_val
-        result = a + b
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.ADD, result.op.op_type)
-        self.assertEqual([a, b], result.children)
+# x, upstream_grad
+UNARY_OPERAND_CASES = [(2.0, 2.0)]
 
-    def test_add_backward(self) -> None:
-        a = Scalar(2.0)
-        b = Scalar(3.0)
-        result = a + b
-        grad_output = 2.0
-        result.op.backward(grad_output)
-        self.assertEqual(grad_output, a.grad)
-        self.assertEqual(grad_output, b.grad)
 
-    def test_radd_forward(self) -> None:
-        a_val = 2.0
-        a = Scalar(a_val)
-        b = 3.0
-        exp_data = b + a_val
-        result = b + a
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.ADD, result.op.op_type)
-        self.assertEqual(a.data, result.children[0].data)
-        self.assertEqual(b, result.children[1].data)
+def test_init_subclass():
+    with pytest.raises(ValueError):
 
-    def test_multiply_forward(self) -> None:
-        a_val = 2.0
-        b_val = 3.0
-        a = Scalar(a_val)
-        b = Scalar(b_val)
-        exp_data = a_val * b_val
-        result = a * b
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.MULTIPLY, result.op.op_type)
-        self.assertEqual([a, b], result.children)
+        class MockOpSubclass(ops.Op):
+            def forward(self, *args) -> float:
+                return 0.0
 
-    def test_multiply_backward(self) -> None:
-        a_val = 2.0
-        b_val = 3.0
-        a = Scalar(a_val)
-        b = Scalar(b_val)
-        result = a * b
-        grad_output = 2.0
-        result.op.backward(grad_output)
-        self.assertEqual(grad_output * b_val, a.grad)
-        self.assertEqual(grad_output * a_val, b.grad)
+            def backward(self, *args) -> float:
+                return 0.0
 
-    def test_rmul_forward(self) -> None:
-        a_val = 2.0
-        a = Scalar(a_val)
-        b = 3.0
-        exp_data = b * a_val
-        result = b * a
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.MULTIPLY, result.op.op_type)
-        self.assertEqual(a.data, result.children[0].data)
-        self.assertEqual(b, result.children[1].data)
 
-    def test_negate_forward(self) -> None:
-        a_val = 2.0
-        a = Scalar(a_val)
-        exp_data = -a_val
-        result = -a
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.NEGATE, result.op.op_type)
-        self.assertEqual([a], result.children)
+@pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
+def test_add_forward_backward(x_val, y_val, upstream_grad):
+    x = Scalar(x_val)
+    y = Scalar(y_val)
+    z = x + y
+    exp_val = x_val + y_val
+    assert z.data == exp_val
+    grads = z.op.backward(upstream_grad)
+    exp_grads = (upstream_grad, upstream_grad)
+    assert grads == exp_grads
 
-    def test_sub_forward(self) -> None:
-        a_val = 2.0
-        b_val = 3.0
-        a = Scalar(a_val)
-        b = Scalar(b_val)
-        exp_data = a_val - b_val
-        result = a - b
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.ADD, result.op.op_type)
-        self.assertEqual(a, result.children[0])
-        self.assertEqual(-b.data, result.children[1].data)
 
-    def test_sub_backward(self) -> None:
-        a_val = 2.0
-        b_val = 3.0
-        a = Scalar(a_val)
-        b = Scalar(b_val)
-        result = a - b
-        grad_output = 2.0
-        result.op.backward(grad_output)
-        self.assertEqual(grad_output, a.grad)
-        z = result.children[1]  # result of (-b)
-        self.assertEqual(grad_output, z.grad)
-        z.op.backward(z.grad)
-        self.assertEqual(-grad_output, z.children[0].grad)
+@pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
+def test_radd_forward_backward(x_val, y_val, upstream_grad):
+    x = x_val
+    y = Scalar(y_val)
+    z = x + y
+    exp_val = x_val + y_val
+    assert z.data == exp_val
+    grads = z.op.backward(upstream_grad)
+    exp_grads = (upstream_grad, upstream_grad)
+    assert grads == exp_grads
 
-    def test_rsub_forward(self) -> None:
-        a_val = 2.0
-        b_val = 3.0
-        b = Scalar(b_val)
-        exp_data = a_val - b_val
-        result = a_val - b
-        self.assertEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.ADD, result.op.op_type)
-        self.assertEqual(-b_val, result.children[0].data)
-        self.assertEqual(a_val, result.children[1].data)
 
-    def test_pow_forward(self) -> None:
-        data = 2.0
-        exponent = 3
-        a = Scalar(data)
-        exp_data = data**exponent
-        result = a**exponent
-        self.assertAlmostEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.POWER, result.op.op_type)
-        self.assertEqual([a], result.children)
+@pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
+def test_mul_forward_backward(x_val, y_val, upstream_grad):
+    x = Scalar(x_val)
+    y = Scalar(y_val)
+    z = x * y
+    exp_val = x_val * y_val
+    assert z.data == exp_val
+    grads = z.op.backward(upstream_grad)
+    exp_grads = (upstream_grad * y_val, upstream_grad * x_val)
+    assert grads == exp_grads
 
-    def test_pow_backward(self) -> None:
-        data = 3.0
-        exponent = 4
-        a = Scalar(data)
-        result = a**exponent
-        grad_output = 2.0
-        result.op.backward(grad_output)
-        exp_grad = grad_output * exponent * data ** (exponent - 1)
-        self.assertEqual(exp_grad, a.grad)
 
-    def test_exp_forward(self) -> None:
-        data = 2.0
-        a = Scalar(data)
-        exp_data = math.exp(data)
-        result = ops.exp(a)
-        self.assertAlmostEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.EXP, result.op.op_type)
-        self.assertEqual([a], result.children)
+@pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
+def test_rmul_forward_backward(x_val, y_val, upstream_grad):
+    x = x_val
+    y = Scalar(y_val)
+    z = x * y
+    exp_val = x_val * y_val
+    assert z.data == exp_val
+    grads = z.op.backward(upstream_grad)
+    # operands are swapped (i.e. y * x)
+    exp_grads = (upstream_grad * x_val, upstream_grad * y_val)
+    assert grads == exp_grads
 
-    def test_exp_backward(self) -> None:
-        data = 2.0
-        a = Scalar(data)
-        result = ops.exp(a)
-        grad_output = 2.0
-        exp_grad = grad_output * math.exp(data)
-        result.op.backward(grad_output)
-        self.assertAlmostEqual(exp_grad, a.grad)
 
-    def test_tanh_forward(self) -> None:
-        data = 1.0
-        a = Scalar(data)
-        exp_data = math.tanh(data)
-        result = ops.tanh(a)
-        self.assertAlmostEqual(exp_data, result.data)
-        self.assertEqual(ops.OpType.TANH, result.op.op_type)
-        self.assertEqual([a], result.children)
+@pytest.mark.parametrize("x_val, upstream_grad", UNARY_OPERAND_CASES)
+def test_neg_forward_backward(x_val, upstream_grad):
+    x = Scalar(x_val)
+    z = -x
+    exp_val = -x_val
+    assert z.data == exp_val
+    grad = z.op.backward(upstream_grad)
+    exp_grad = -upstream_grad
+    assert grad == exp_grad
 
-    def test_tanh_backward(self) -> None:
-        data = 1.0
-        a = Scalar(data)
-        result = ops.tanh(a)
-        grad_output = 2.0
-        exp_grad = grad_output * (1 - math.tanh(data) ** 2)
-        result.op.backward(grad_output)
-        self.assertAlmostEqual(exp_grad, a.grad)
+
+@pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
+def test_sub_forward_backward(x_val, y_val, upstream_grad):
+    x = Scalar(x_val)
+    y = Scalar(y_val)
+    z = x - y
+    exp_val = x_val - y_val
+    assert z.data == exp_val
+    grads = z.op.backward(upstream_grad)
+    # NOTE: subtraction is implemented as addition, i.e. x + (-y)
+    # Need to perform manual backprop to get gradient for y
+    x_grad = grads[0]
+    assert x_grad == upstream_grad
+    neg_y = z.op.parents[1]
+    y_grad = neg_y.op.backward(grads[1])
+    assert y_grad == -upstream_grad
+
+
+@pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
+def test_rsub_forward_backward(x_val, y_val, upstream_grad):
+    x = x_val
+    y = Scalar(y_val)
+    z = x - y
+    exp_val = x_val - y_val
+    assert z.data == exp_val
+    grads = z.op.backward(upstream_grad)
+    # NOTE: subtraction is implemented as addition, i.e. x + (-y)
+    # Need to perform manual backprop to get gradient for y
+    # `rsub` will swap the operands, since x is a float, i.e.  (-y) + x
+    neg_y = z.op.parents[0]
+    y_grad = neg_y.op.backward(grads[0])
+    assert y_grad == -upstream_grad
+    x_grad = grads[1]
+    assert x_grad == upstream_grad
+
+
+@pytest.mark.parametrize("x_val, c, upstream_grad", BINARY_OPERAND_CASES)
+def test_pow_forward_backward(x_val, c, upstream_grad):
+    x = Scalar(x_val)
+    z = x**c
+    exp_val = x_val**c
+    assert z.data == exp_val
+    grad = z.op.backward(upstream_grad)
+    exp_grad = upstream_grad * c * x_val ** (c - 1)
+    assert grad == exp_grad
+
+
+@pytest.mark.parametrize("x_val, upstream_grad", UNARY_OPERAND_CASES)
+def test_exp_forward_backward(x_val, upstream_grad):
+    x = Scalar(x_val)
+    z = ops.exp(x)
+    exp_val = math.exp(x_val)
+    assert z.data == exp_val
+    grad = z.op.backward(upstream_grad)
+    exp_grad = upstream_grad * exp_val
+    assert grad == exp_grad
+
+
+@pytest.mark.parametrize("x_val, upstream_grad", UNARY_OPERAND_CASES)
+def test_tanh_forward_backward(x_val, upstream_grad):
+    x = Scalar(x_val)
+    z = ops.tanh(x)
+    exp_val = math.tanh(x_val)
+    assert z.data == exp_val
+    grad = z.op.backward(upstream_grad)
+    exp_grad = upstream_grad * (1 - exp_val**2)
+    assert grad == exp_grad
