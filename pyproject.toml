@@ -12,3 +12,21 @@ dependencies = []
 [build-system]
 requires = ["uv_build>=0.11.26,<0.12.0"]
 build-backend = "uv_build"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # PEP8 errors
+    "W",  # PEP8 warnings
+    "F",  # Pyflakes
+    "I",  # Isort
+    "B",  # flake-bugbear (catches dangerous design flaws)
+]
+ignore = []
+
+[tool.ruff.lint.isort]
+# Prioritize first-party imports over third-party imports
+known-first-party = ["firn_micrograd"]

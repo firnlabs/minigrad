@@ -1,0 +1,8 @@
+extends:
+  - "@commitlint/config-conventional"
+
+rules:
+  # Enforce strict maximum line character length for the subject line
+  # Matrix details: [Level (2 = Error), Applicability ("always"), Value (max charracter length)]
+  header-max-length: [2, "always", 50]
+  body-max-line-length: [2, "always", 72]

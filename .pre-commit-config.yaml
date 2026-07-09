@@ -1,0 +1,32 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0  # Use the latest stable version
+    hooks:
+      - id: trailing-whitespace      # Trims unnecessary trailing whitespace
+      - id: end-of-file-fixer        # Ensures files end with a newline character
+      - id: check-yaml               # Validates syntax for your yaml configuration files
+      - id: check-added-large-files  # Prevents accidentally staging gigantic binaries (>500KB)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20  # Use the latest stable version of Ruff
+    hooks:
+      # Hook 1: The Linter and Style Checker (Replaces Flake8, Isort, etc.)
+      - id: ruff
+        args: [ --fix ] # Automatically fix safe violations (like unused imports) on stage
+
+      # Hook 2: The Autoformatter (Replaces Black completely)
+      - id: ruff-format
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.26.0  # Stable release tag
+    hooks:
+      - id: commitlint
+        stages: [ commit-msg ]
+        additional_dependencies: [ "@commitlint/config-conventional" ]
+
+# Register pre-commit hooks:
+# pre-commit install --hook-type pre-commit
+# pre-commit install --hook-type commit-msg
