@@ -7,7 +7,7 @@ import enum
 import math
 from collections.abc import Sequence
 
-from minigrad.scalar.engine import Value
+from minigrad.scalar.engine import Scalar
 
 
 class OpType(enum.StrEnum):
@@ -37,14 +37,14 @@ class Op(abc.ABC):
             )
 
     def __init__(self, *inputs) -> None:
-        assert all(isinstance(x, Value) for x in inputs), (
+        assert all(isinstance(x, Scalar) for x in inputs), (
             "All inputs must be Value instances."
         )
-        self._inputs: Sequence[Value] = inputs
-        self._out: Value | None = None
+        self._inputs: Sequence[Scalar] = inputs
+        self._out: Scalar | None = None
 
     @property
-    def out(self) -> Value | None:
+    def out(self) -> Scalar | None:
         """The Value resulting from this operation, if any."""
         return self._out
 
@@ -63,14 +63,14 @@ class Add(Op):
     op_type = OpType.ADD
 
     def forward(self):
-        a: Value = self._inputs[0]
-        b: Value = self._inputs[1]
-        self._out = Value(a.data + b.data, _children=[a, b], _op=self)
+        a: Scalar = self._inputs[0]
+        b: Scalar = self._inputs[1]
+        self._out = Scalar(a.data + b.data, _children=[a, b], _op=self)
         return self._out
 
     def backward(self, grad_output: float):
-        a: Value = self._inputs[0]
-        b: Value = self._inputs[1]
+        a: Scalar = self._inputs[0]
+        b: Scalar = self._inputs[1]
         a.grad += grad_output * 1.0
         b.grad += grad_output * 1.0
 
@@ -81,14 +81,14 @@ class Multiply(Op):
     op_type = OpType.MULTIPLY
 
     def forward(self):
-        a: Value = self._inputs[0]
-        b: Value = self._inputs[1]
-        self._out = Value(a.data * b.data, _children=[a, b], _op=self)
+        a: Scalar = self._inputs[0]
+        b: Scalar = self._inputs[1]
+        self._out = Scalar(a.data * b.data, _children=[a, b], _op=self)
         return self._out
 
     def backward(self, grad_output: float):
-        a: Value = self._inputs[0]
-        b: Value = self._inputs[1]
+        a: Scalar = self._inputs[0]
+        b: Scalar = self._inputs[1]
         a.grad += grad_output * b.data
         b.grad += grad_output * a.data
 
@@ -106,12 +106,12 @@ class Negate(Op):
     op_type = OpType.NEGATE
 
     def forward(self):
-        a: Value = self._inputs[0]
-        self._out = Value(-a.data, _children=[a], _op=self)
+        a: Scalar = self._inputs[0]
+        self._out = Scalar(-a.data, _children=[a], _op=self)
         return self._out
 
     def backward(self, grad_output: float):
-        a: Value = self._inputs[0]
+        a: Scalar = self._inputs[0]
         a.grad += grad_output * -1.0
 
 
@@ -121,13 +121,13 @@ class Power(Op):
     op_type = OpType.POWER
 
     def forward(self, exponent: int | float):
-        a: Value = self._inputs[0]
-        self._out = Value(a.data**exponent, _children=[a], _op=self)
+        a: Scalar = self._inputs[0]
+        self._out = Scalar(a.data**exponent, _children=[a], _op=self)
         self._exponent = exponent
         return self._out
 
     def backward(self, grad_output: float):
-        a: Value = self._inputs[0]
+        a: Scalar = self._inputs[0]
         a.grad += grad_output * self._exponent * self._out.data * a.data**-1
 
 
@@ -137,12 +137,12 @@ class Exp(Op):
     op_type = OpType.EXP
 
     def forward(self):
-        a: Value = self._inputs[0]
-        self._out = Value(math.exp(a.data), _children=[a], _op=self)
+        a: Scalar = self._inputs[0]
+        self._out = Scalar(math.exp(a.data), _children=[a], _op=self)
         return self._out
 
     def backward(self, grad_output: float):
-        a: Value = self._inputs[0]
+        a: Scalar = self._inputs[0]
         a.grad += grad_output * self._out.data
 
 
@@ -152,17 +152,17 @@ class Tanh(Op):
     op_type = OpType.TANH
 
     def forward(self):
-        a: Value = self._inputs[0]
-        self._out = Value(math.tanh(a.data), _children=[a], _op=self)
+        a: Scalar = self._inputs[0]
+        self._out = Scalar(math.tanh(a.data), _children=[a], _op=self)
         return self._out
 
     def backward(self, grad_output: float):
-        a: Value = self._inputs[0]
+        a: Scalar = self._inputs[0]
         a.grad += grad_output * (1 - self._out.data**2)
 
 
-def _coerce_to_value(x) -> Value:
-    return x if isinstance(x, Value) else Value(x)
+def _coerce_to_value(x) -> Scalar:
+    return x if isinstance(x, Scalar) else Scalar(x)
 
 
 def _add_dispatcher(a, b):
@@ -200,22 +200,22 @@ def _pow_dispatcher(a, b):
     return Power(a).forward(b)
 
 
-def exp(a) -> Value:
+def exp(a) -> Scalar:
     """Exponentiates a Value."""
     a = _coerce_to_value(a)
     return Exp(a).forward()
 
 
-def tanh(a) -> Value:
+def tanh(a) -> Scalar:
     a = _coerce_to_value(a)
     return Tanh(a).forward()
 
 
-Value.__add__ = _add_dispatcher
-Value.__radd__ = _add_dispatcher
-Value.__mul__ = _mul_dispatcher
-Value.__rmul__ = _mul_dispatcher
-Value.__neg__ = _neg_dispatcher
-Value.__sub__ = _sub_dispatcher
-Value.__rsub__ = _rsub_dispatcher
-Value.__pow__ = _pow_dispatcher
+Scalar.__add__ = _add_dispatcher
+Scalar.__radd__ = _add_dispatcher
+Scalar.__mul__ = _mul_dispatcher
+Scalar.__rmul__ = _mul_dispatcher
+Scalar.__neg__ = _neg_dispatcher
+Scalar.__sub__ = _sub_dispatcher
+Scalar.__rsub__ = _rsub_dispatcher
+Scalar.__pow__ = _pow_dispatcher

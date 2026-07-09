@@ -2,14 +2,14 @@
 
 import unittest
 
-from minigrad.scalar import Value
+from minigrad.scalar import Scalar
 
 
 class ValueTest(unittest.TestCase):
     """Tests for `Value` class."""
 
     def test_init_default(self) -> None:
-        x = Value(2)
+        x = Scalar(2)
 
         self.assertEqual(2.0, x._data)
         self.assertEqual(None, x._op)

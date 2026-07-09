@@ -5,14 +5,14 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 
-class Value:
+class Scalar:
     """Represents a scalar value with auto-differentiation support."""
 
     def __init__(
         self,
         data: int | float,
         name: str | None = None,
-        _children: Sequence[Value] | None = None,
+        _children: Sequence[Scalar] | None = None,
         _op: None = None,  # TODO: define Op class
     ) -> None:
         """Initialization.
@@ -43,7 +43,7 @@ class Value:
         self._name = value
 
     @property
-    def children(self) -> Sequence[Value]:
+    def children(self) -> Sequence[Scalar]:
         return self._children
 
     @property

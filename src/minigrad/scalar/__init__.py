@@ -1,4 +1,4 @@
 from . import ops
-from .engine import Value
+from .engine import Scalar
 
-__all__ = ["Value", "ops"]
+__all__ = ["Scalar", "ops"]

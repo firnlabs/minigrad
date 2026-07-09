@@ -3,15 +3,15 @@
 import math
 import unittest
 
-from minigrad.scalar import Value, ops
+from minigrad.scalar import Scalar, ops
 
 
 class ValueTest(unittest.TestCase):
     def test_add_forward(self) -> None:
         a_val = 2.0
         b_val = 3.0
-        a = Value(a_val)
-        b = Value(b_val)
+        a = Scalar(a_val)
+        b = Scalar(b_val)
         exp_data = a_val + b_val
         result = a + b
         self.assertEqual(exp_data, result.data)
@@ -19,8 +19,8 @@ class ValueTest(unittest.TestCase):
         self.assertEqual([a, b], result.children)
 
     def test_add_backward(self) -> None:
-        a = Value(2.0)
-        b = Value(3.0)
+        a = Scalar(2.0)
+        b = Scalar(3.0)
         result = a + b
         grad_output = 2.0
         result.op.backward(grad_output)
@@ -29,7 +29,7 @@ class ValueTest(unittest.TestCase):
 
     def test_radd_forward(self) -> None:
         a_val = 2.0
-        a = Value(a_val)
+        a = Scalar(a_val)
         b = 3.0
         exp_data = b + a_val
         result = b + a
@@ -41,8 +41,8 @@ class ValueTest(unittest.TestCase):
     def test_multiply_forward(self) -> None:
         a_val = 2.0
         b_val = 3.0
-        a = Value(a_val)
-        b = Value(b_val)
+        a = Scalar(a_val)
+        b = Scalar(b_val)
         exp_data = a_val * b_val
         result = a * b
         self.assertEqual(exp_data, result.data)
@@ -52,8 +52,8 @@ class ValueTest(unittest.TestCase):
     def test_multiply_backward(self) -> None:
         a_val = 2.0
         b_val = 3.0
-        a = Value(a_val)
-        b = Value(b_val)
+        a = Scalar(a_val)
+        b = Scalar(b_val)
         result = a * b
         grad_output = 2.0
         result.op.backward(grad_output)
@@ -62,7 +62,7 @@ class ValueTest(unittest.TestCase):
 
     def test_rmul_forward(self) -> None:
         a_val = 2.0
-        a = Value(a_val)
+        a = Scalar(a_val)
         b = 3.0
         exp_data = b * a_val
         result = b * a
@@ -73,7 +73,7 @@ class ValueTest(unittest.TestCase):
 
     def test_negate_forward(self) -> None:
         a_val = 2.0
-        a = Value(a_val)
+        a = Scalar(a_val)
         exp_data = -a_val
         result = -a
         self.assertEqual(exp_data, result.data)
@@ -83,8 +83,8 @@ class ValueTest(unittest.TestCase):
     def test_sub_forward(self) -> None:
         a_val = 2.0
         b_val = 3.0
-        a = Value(a_val)
-        b = Value(b_val)
+        a = Scalar(a_val)
+        b = Scalar(b_val)
         exp_data = a_val - b_val
         result = a - b
         self.assertEqual(exp_data, result.data)
@@ -95,8 +95,8 @@ class ValueTest(unittest.TestCase):
     def test_sub_backward(self) -> None:
         a_val = 2.0
         b_val = 3.0
-        a = Value(a_val)
-        b = Value(b_val)
+        a = Scalar(a_val)
+        b = Scalar(b_val)
         result = a - b
         grad_output = 2.0
         result.op.backward(grad_output)
@@ -109,7 +109,7 @@ class ValueTest(unittest.TestCase):
     def test_rsub_forward(self) -> None:
         a_val = 2.0
         b_val = 3.0
-        b = Value(b_val)
+        b = Scalar(b_val)
         exp_data = a_val - b_val
         result = a_val - b
         self.assertEqual(exp_data, result.data)
@@ -120,7 +120,7 @@ class ValueTest(unittest.TestCase):
     def test_pow_forward(self) -> None:
         data = 2.0
         exponent = 3
-        a = Value(data)
+        a = Scalar(data)
         exp_data = data**exponent
         result = a**exponent
         self.assertAlmostEqual(exp_data, result.data)
@@ -130,7 +130,7 @@ class ValueTest(unittest.TestCase):
     def test_pow_backward(self) -> None:
         data = 3.0
         exponent = 4
-        a = Value(data)
+        a = Scalar(data)
         result = a**exponent
         grad_output = 2.0
         result.op.backward(grad_output)
@@ -139,7 +139,7 @@ class ValueTest(unittest.TestCase):
 
     def test_exp_forward(self) -> None:
         data = 2.0
-        a = Value(data)
+        a = Scalar(data)
         exp_data = math.exp(data)
         result = ops.exp(a)
         self.assertAlmostEqual(exp_data, result.data)
@@ -148,7 +148,7 @@ class ValueTest(unittest.TestCase):
 
     def test_exp_backward(self) -> None:
         data = 2.0
-        a = Value(data)
+        a = Scalar(data)
         result = ops.exp(a)
         grad_output = 2.0
         exp_grad = grad_output * math.exp(data)
@@ -157,7 +157,7 @@ class ValueTest(unittest.TestCase):
 
     def test_tanh_forward(self) -> None:
         data = 1.0
-        a = Value(data)
+        a = Scalar(data)
         exp_data = math.tanh(data)
         result = ops.tanh(a)
         self.assertAlmostEqual(exp_data, result.data)
@@ -166,7 +166,7 @@ class ValueTest(unittest.TestCase):
 
     def test_tanh_backward(self) -> None:
         data = 1.0
-        a = Value(data)
+        a = Scalar(data)
         result = ops.tanh(a)
         grad_output = 2.0
         exp_grad = grad_output * (1 - math.tanh(data) ** 2)
