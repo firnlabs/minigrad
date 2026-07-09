@@ -160,7 +160,7 @@ def _add_dispatcher(x, y):
     x = _coerce_to_scalar(x)
     y = _coerce_to_scalar(y)
     op_instance = Add(x, y)
-    return Scalar(op_instance.forward(x.data, y.data), _op=op_instance)
+    return Scalar(op_instance.forward(x.data, y.data), op=op_instance)
 
 
 def _mul_dispatcher(a, b):
@@ -168,14 +168,14 @@ def _mul_dispatcher(a, b):
     a = _coerce_to_scalar(a)
     b = _coerce_to_scalar(b)
     op_instance = Multiply(a, b)
-    return Scalar(op_instance.forward(a.data, b.data), _op=op_instance)
+    return Scalar(op_instance.forward(a.data, b.data), op=op_instance)
 
 
 def _neg_dispatcher(a):
     """Dispatches negation operation."""
     a = _coerce_to_scalar(a)
     op_instance = Negate(a)
-    return Scalar(op_instance.forward(a.data), _op=op_instance)
+    return Scalar(op_instance.forward(a.data), op=op_instance)
 
 
 def _sub_dispatcher(a, b):
@@ -192,20 +192,20 @@ def _pow_dispatcher(a, b):
     """Dispatches power operation."""
     a = _coerce_to_scalar(a)
     op_instance = Power(a)
-    return Scalar(op_instance.forward(a.data, b), _op=op_instance)
+    return Scalar(op_instance.forward(a.data, b), op=op_instance)
 
 
 def exp(a) -> Scalar:
     """Exponentiates a Value."""
     a = _coerce_to_scalar(a)
     op_instance = Exp(a)
-    return Scalar(op_instance.forward(a.data), _op=op_instance)
+    return Scalar(op_instance.forward(a.data), op=op_instance)
 
 
 def tanh(a) -> Scalar:
     a = _coerce_to_scalar(a)
     op_instance = Tanh(a)
-    return Scalar(op_instance.forward(a.data), _op=op_instance)
+    return Scalar(op_instance.forward(a.data), op=op_instance)
 
 
 Scalar.__add__ = _add_dispatcher

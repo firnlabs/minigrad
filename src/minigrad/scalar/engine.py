@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 
 class Scalar:
     """Represents a scalar value with auto-differentiation support."""
@@ -11,28 +9,25 @@ class Scalar:
     def __init__(
         self,
         data: int | float,
+        op=None,
         name: str | None = None,
-        _children: Sequence[Scalar] | None = None,
-        _op: None = None,  # TODO: define Op class
     ) -> None:
         """Initialization.
 
         Args:
             data: Data to store. Converted to Python `float`.
-            operator: Used when creating a new Value from an operation.
-            children: Any previous `Value`s used to compute this `Value`.
-            name: A name for the `Value`.
+            op: Op when creating a new Value from an operation.
+            name: A name for the Ccalar .
         """
         self._data = float(data)
-        self._op = _op
-        self._children = _children or []
+        self._op = op
         self._name = name or "unnamed"
         self._grad: float = 0.0
 
     def __repr__(self) -> str:
         """String representation of `Value`."""
-        op_type = self._op.op_type if self._op else "none"
-        return f"Value(data={self._data}, operator={op_type}, name={self._name})"
+        op_type = self.op.op_type if self.op else "none"
+        return f"Value(data={self.data}, operator={op_type}, name={self.name})"
 
     @property
     def name(self) -> str:
@@ -41,10 +36,6 @@ class Scalar:
     @name.setter
     def name(self, value: str) -> None:
         self._name = value
-
-    @property
-    def children(self) -> Sequence[Scalar]:
-        return self._children
 
     @property
     def op(self):
