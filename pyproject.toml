@@ -22,7 +22,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["*_test.py"]
+python_files = ["test_*.py"]
 # --cov=minigrad: only check coverage for src/minigrad
 # --cov-report=term-missing: report code lines not covered
 # --cov-report=html: generate HTML report
