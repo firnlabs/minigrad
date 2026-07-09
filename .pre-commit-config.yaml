@@ -1,4 +1,15 @@
 repos:
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.26.0  # Stable release tag
+    hooks:
+      - id: commitlint
+        stages: [ commit-msg ]
+        additional_dependencies: [ "@commitlint/config-conventional" ]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0  # Use the latest stable version
     hooks:
@@ -23,17 +34,14 @@ repos:
         types: [python]
         stages: [pre-commit]
         pass_filenames: false
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.4.0
+  - repo: local
     hooks:
-      - id: conventional-pre-commit
-        stages: [commit-msg]
-  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.26.0  # Stable release tag
-    hooks:
-      - id: commitlint
-        stages: [ commit-msg ]
-        additional_dependencies: [ "@commitlint/config-conventional" ]
+      - id: enforce-branch-name
+        name: Enforce Branch Naming Conventions
+        entry: uv run python ./scripts/enforce_branch_names.py
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
 
 # Register pre-commit hooks:
 # pre-commit install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push
