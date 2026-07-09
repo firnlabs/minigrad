@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 import enum
 import math
-from collections.abc import Sequence
 
 from minigrad.scalar.engine import Scalar
 
@@ -44,7 +44,7 @@ class Op(abc.ABC):
         self._saved_values: Sequence[float] = []
 
     def save_for_backward(self, *values) -> None:
-        """Stores values to be used for the backward pass."""
+        """Store values to be used for the backward pass."""
         self._saved_values.extend(values)
 
     @property

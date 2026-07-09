@@ -1,8 +1,8 @@
 """Enforce Git branch naming convention."""
 
 import re
-import sys
 from subprocess import check_output
+import sys
 
 
 def main() -> None:

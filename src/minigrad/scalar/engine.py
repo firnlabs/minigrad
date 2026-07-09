@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class Scalar:
     """Represents a scalar value with auto-differentiation support."""
@@ -9,15 +11,15 @@ class Scalar:
     def __init__(
         self,
         data: int | float,
-        op=None,
+        op: Any = None,
         name: str | None = None,
     ) -> None:
-        """Initialization.
+        """Initialize the Scalar.
 
         Args:
             data: Data to store. Converted to Python `float`.
             op: Op when creating a new Value from an operation.
-            name: A name for the Ccalar .
+            name: A name for the Scalar.
         """
         self._data = float(data)
         self._op = op
@@ -25,7 +27,7 @@ class Scalar:
         self._grad: float = 0.0
 
     def __repr__(self) -> str:
-        """String representation of `Value`."""
+        """Return the string representation of `Value`."""
         op_type = self.op.op_type if self.op else "none"
         return f"Value(data={self.data}, operator={op_type}, name={self.name})"
 

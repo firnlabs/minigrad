@@ -4,7 +4,8 @@ import math
 
 import pytest
 
-from minigrad.scalar import Scalar, ops
+from minigrad.scalar import ops
+from minigrad.scalar import Scalar
 
 # x, y, upstream_grad
 BINARY_OPERAND_CASES = [(2.0, 3.0, 2.0)]
