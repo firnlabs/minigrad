@@ -6,15 +6,23 @@ repos:
       - id: end-of-file-fixer        # Ensures files end with a newline character
       - id: check-yaml               # Validates syntax for your yaml configuration files
       - id: check-added-large-files  # Prevents accidentally staging gigantic binaries (>500KB)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20  # Use the latest stable version of Ruff
+  - repo: local
     hooks:
-      # Hook 1: The Linter and Style Checker (Replaces Flake8, Isort, etc.)
-      - id: ruff
-        args: [ --fix ] # Automatically fix safe violations (like unused imports) on stage
-
-      # Hook 2: The Autoformatter (Replaces Black completely)
+      - id: ruff-check
+        name: Ruff lint check
+        # --fix: Automatically fix safe violations (like unused imports) on stage
+        entry: uv run ruff check . --fix
+        language: system
+        types: [python]
+        stages: [pre-commit]
+        pass_filenames: false  # rescan global workspace path (.)
       - id: ruff-format
+        name: Ruff code autoformat
+        entry: uv run ruff format .
+        language: system
+        types: [python]
+        stages: [pre-commit]
+        pass_filenames: false
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
     hooks:
@@ -28,5 +36,4 @@ repos:
         additional_dependencies: [ "@commitlint/config-conventional" ]
 
 # Register pre-commit hooks:
-# pre-commit install --hook-type pre-commit
-# pre-commit install --hook-type commit-msg
+# pre-commit install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push
