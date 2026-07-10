@@ -6,10 +6,11 @@ from minigrad.scalar import Scalar
 def test_init_default() -> None:
     x = Scalar(2)
 
-    assert x._data == 2.0
+    assert x.data == 2.0
     assert x.op is None
     assert x.name == "unnamed"
-    assert x.grad == 0.0
+    assert x.grad is None
+    assert x.requires_grad is False
 
 
 def test_name_setter() -> None:
@@ -33,9 +34,14 @@ def test_op_setter() -> None:
 
 def test_grad_setter() -> None:
     x = Scalar(2)
-    assert x.grad == 0.0
     x.grad = 1.5
     assert x.grad == 1.5
+
+
+def test_requires_grad_setter() -> None:
+    x = Scalar(2)
+    x.requires_grad = False
+    assert not x.requires_grad
 
 
 def test_data_property() -> None:
@@ -45,7 +51,7 @@ def test_data_property() -> None:
 
 def test_repr_without_op() -> None:
     x = Scalar(2, name="x")
-    assert repr(x) == "Value(data=2.0, operator=none, name=x)"
+    assert repr(x) == "Scalar(data=2.0, op=none, name=x, requires_grad=False)"
 
 
 def test_repr_with_op() -> None:
@@ -54,4 +60,16 @@ def test_repr_with_op() -> None:
 
     mock_op = MockOp()
     x = Scalar(2, op=mock_op, name="x")
-    assert repr(x) == "Value(data=2.0, operator=mock_op, name=x)"
+    assert repr(x) == "Scalar(data=2.0, op=mock_op, name=x, requires_grad=False)"
+
+
+def test_backward_grad_disabled() -> None:
+    x = Scalar(2.0)
+    y = Scalar(3.0)
+    z = x * y
+    z.requires_grad = False  # Manually disable
+    w = z * 4.0
+    w.backward()
+    assert z.grad is None
+    assert x.grad is None
+    assert y.grad is None

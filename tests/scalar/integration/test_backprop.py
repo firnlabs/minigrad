@@ -10,9 +10,9 @@ from tests.verification import gradcheck
 
 def test_backprop_no_value_reuse() -> None:
     """Tests backpropagation of gradients with no value reuse."""
-    a = Scalar(2.0, name="a")
-    b = Scalar(3.0, name="b")
-    c = Scalar(4.0, name="c")
+    a = Scalar(2.0, name="a", requires_grad=True)
+    b = Scalar(3.0, name="b", requires_grad=True)
+    c = Scalar(4.0, name="c", requires_grad=True)
     d = a * b
     e = d + c
 
@@ -27,8 +27,8 @@ def test_backprop_no_value_reuse() -> None:
 
 def test_backprop_value_reuse() -> None:
     """Tests backpropagation of gradients with value reuse."""
-    a = Scalar(2.0, name="a")
-    b = Scalar(3.0, name="b")
+    a = Scalar(2.0, name="a", requires_grad=True)
+    b = Scalar(3.0, name="b", requires_grad=True)
     c = a * b
     d = c + a
     e = d * b
@@ -44,11 +44,11 @@ def test_backprop_value_reuse() -> None:
 
 def test_backprop_perceptron() -> None:
     """Tests backpropagation of gradients in a simple perceptron."""
-    x1 = Scalar(1.0, name="x1")
-    x2 = Scalar(2.0, name="x2")
-    w1 = Scalar(3.0, name="w1")
-    w2 = Scalar(-1.0, name="w2")
-    b = Scalar(0.5, name="b")
+    x1 = Scalar(1.0, name="x1", requires_grad=False)
+    x2 = Scalar(2.0, name="x2", requires_grad=False)
+    w1 = Scalar(3.0, name="w1", requires_grad=True)
+    w2 = Scalar(-1.0, name="w2", requires_grad=True)
+    b = Scalar(0.5, name="b", requires_grad=True)
 
     # Forward pass
     z = x1 * w1 + x2 * w2 + b
@@ -75,3 +75,5 @@ def test_backprop_perceptron() -> None:
     check(w1, lambda w1_val: func(w1_val, w2.data, b.data))
     check(w2, lambda w2_val: func(w1.data, w2_val, b.data))
     check(b, lambda b_val: func(w1.data, w2.data, b_val))
+    assert x1.grad is None
+    assert x2.grad is None

@@ -38,7 +38,7 @@ class Op(abc.ABC):
 
     def __init__(self, *inputs) -> None:
         assert all(isinstance(x, Scalar) for x in inputs), (
-            "All inputs must be Value instances."
+            "All inputs must be Scalar instances."
         )
         self._parents: Sequence[Scalar] = inputs
         self._saved_values: Sequence[float] = []
@@ -155,64 +155,85 @@ def _coerce_to_scalar(x) -> Scalar:
     return x if isinstance(x, Scalar) else Scalar(x)
 
 
-def _add_dispatcher(x, y):
+def _add_dispatcher(x: Scalar, y: Scalar | int | float):
     """Dispatches addition operation."""
-    x = _coerce_to_scalar(x)
     y = _coerce_to_scalar(y)
     op_instance = Add(x, y)
-    return Scalar(op_instance.forward(x.data, y.data), op=op_instance)
+    return Scalar(
+        op_instance.forward(x.data, y.data),
+        op=op_instance,
+        requires_grad=x.requires_grad or y.requires_grad,
+    )
 
 
-def _radd_dispatcher(y, x):
+def _radd_dispatcher(y: Scalar, x: Scalar | int | float):
     x = _coerce_to_scalar(x)
     return x + y
 
 
-def _mul_dispatcher(a, b):
+def _mul_dispatcher(x: Scalar, y: Scalar | int | float):
     """Dispatches multiplication operation."""
-    a = _coerce_to_scalar(a)
-    b = _coerce_to_scalar(b)
-    op_instance = Multiply(a, b)
-    return Scalar(op_instance.forward(a.data, b.data), op=op_instance)
+    y = _coerce_to_scalar(y)
+    op_instance = Multiply(x, y)
+    return Scalar(
+        op_instance.forward(x.data, y.data),
+        op=op_instance,
+        requires_grad=x.requires_grad or y.requires_grad,
+    )
 
 
-def _neg_dispatcher(a):
+def _neg_dispatcher(x: Scalar):
     """Dispatches negation operation."""
-    a = _coerce_to_scalar(a)
-    op_instance = Negate(a)
-    return Scalar(op_instance.forward(a.data), op=op_instance)
+    op_instance = Negate(x)
+    return Scalar(
+        op_instance.forward(x.data),
+        op=op_instance,
+        requires_grad=x.requires_grad,
+    )
 
 
-def _sub_dispatcher(a, b):
+def _sub_dispatcher(x: Scalar, y: Scalar | int | float):
     """Dispatches subtraction operation."""
-    return a + (-b)
+    return x + (-y)
 
 
-def _rsub_dispatcher(b, a):
+def _rsub_dispatcher(y: Scalar, x: Scalar | int | float):
     """Dispatches subtraction operation."""
     # Prevents triggering __radd__ and doing another reversal
-    a = _coerce_to_scalar(a)
-    return a + (-b)
+    x = _coerce_to_scalar(x)
+    return x + (-y)
 
 
-def _pow_dispatcher(a, b):
+def _pow_dispatcher(x: Scalar, y: int | float):
     """Dispatches power operation."""
-    a = _coerce_to_scalar(a)
-    op_instance = Power(a)
-    return Scalar(op_instance.forward(a.data, b), op=op_instance)
+    op_instance = Power(x)
+    return Scalar(
+        op_instance.forward(x.data, y),
+        op=op_instance,
+        requires_grad=x.requires_grad,
+    )
 
 
-def exp(a) -> Scalar:
-    """Exponentiates a Value."""
-    a = _coerce_to_scalar(a)
-    op_instance = Exp(a)
-    return Scalar(op_instance.forward(a.data), op=op_instance)
+def exp(x) -> Scalar:
+    """Exponentiates a Scalar."""
+    x = _coerce_to_scalar(x)
+    op_instance = Exp(x)
+    return Scalar(
+        op_instance.forward(x.data),
+        op=op_instance,
+        requires_grad=x.requires_grad,
+    )
 
 
-def tanh(a) -> Scalar:
-    a = _coerce_to_scalar(a)
-    op_instance = Tanh(a)
-    return Scalar(op_instance.forward(a.data), op=op_instance)
+def tanh(x) -> Scalar:
+    """Computes tanh of a Scalar."""
+    x = _coerce_to_scalar(x)
+    op_instance = Tanh(x)
+    return Scalar(
+        op_instance.forward(x.data),
+        op=op_instance,
+        requires_grad=x.requires_grad,
+    )
 
 
 Scalar.__add__ = _add_dispatcher
