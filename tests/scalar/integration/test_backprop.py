@@ -8,9 +8,11 @@ from minigrad.scalar import Scalar
 from tests.verification import gradcheck
 
 
-def _check_gradient(target: Scalar, f: Callable) -> None:
+def _check_gradient(target: Scalar, f: Callable[[float], float]) -> None:
     """Check if the analytical gradient matches the numerical gradient."""
+    assert target.grad is not None
     is_match, num_grad = gradcheck.check_gradient(grad=target.grad, f=f, x=target.data)
+
     assert is_match, (
         f"Gradient check failed for {target.name}:"
         f" expected {num_grad}, actual: {target.grad}"
@@ -102,15 +104,23 @@ def test_backprop_perceptron_mse_loss() -> None:
 
     assert loss.grad == 1.0
     assert p.grad == 0.5
+    assert d.grad is not None
+    assert p.grad is not None
     assert d.grad == p.grad * 2 * d.data
     assert y.grad is None
     assert y_pred.grad == d.grad
+    assert c.grad is not None
+    assert y_pred.grad is not None
     assert c.grad == y_pred.grad * (1 - y_pred.data**2)
     assert a.grad == c.grad
     assert b.grad == c.grad
     assert z1.grad == a.grad
     assert z2.grad == a.grad
+    assert w1.grad is not None
+    assert z1.grad is not None
     assert w1.grad == z1.grad * x1.data
+    assert w2.grad is not None
+    assert z2.grad is not None
     assert w2.grad == z2.grad * x2.data
     assert x1.grad is None
     assert x2.grad is None

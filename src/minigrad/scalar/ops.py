@@ -41,7 +41,7 @@ class Op(abc.ABC):
             "All inputs must be Scalar instances."
         )
         self._parents: Sequence[Scalar] = inputs
-        self._saved_values: Sequence[float] = []
+        self._saved_values: list[float] = []
 
     def save_for_backward(self, *values) -> None:
         """Store values to be used for the backward pass."""
@@ -151,70 +151,70 @@ class Tanh(Op):
         return grad_output * (1 - math.tanh(x) ** 2)
 
 
-def _coerce_to_scalar(x) -> Scalar:
+def _coerce_to_scalar(x: Scalar | int | float) -> Scalar:
     return x if isinstance(x, Scalar) else Scalar(x)
 
 
-def _add_dispatcher(x: Scalar, y: Scalar | int | float):
+def _add_dispatcher(self: Scalar, other: Scalar | int | float) -> Scalar:
     """Dispatches addition operation."""
-    y = _coerce_to_scalar(y)
-    op_instance = Add(x, y)
+    other = _coerce_to_scalar(other)
+    op_instance = Add(self, other)
     return Scalar(
-        op_instance.forward(x.data, y.data),
+        op_instance.forward(self.data, other.data),
         op=op_instance,
-        requires_grad=x.requires_grad or y.requires_grad,
+        requires_grad=self.requires_grad or other.requires_grad,
     )
 
 
-def _radd_dispatcher(y: Scalar, x: Scalar | int | float):
-    x = _coerce_to_scalar(x)
-    return x + y
+def _radd_dispatcher(self: Scalar, other: Scalar | int | float) -> Scalar:
+    other = _coerce_to_scalar(other)
+    return other + self
 
 
-def _mul_dispatcher(x: Scalar, y: Scalar | int | float):
+def _mul_dispatcher(self: Scalar, other: Scalar | int | float) -> Scalar:
     """Dispatches multiplication operation."""
-    y = _coerce_to_scalar(y)
-    op_instance = Multiply(x, y)
+    other = _coerce_to_scalar(other)
+    op_instance = Multiply(self, other)
     return Scalar(
-        op_instance.forward(x.data, y.data),
+        op_instance.forward(self.data, other.data),
         op=op_instance,
-        requires_grad=x.requires_grad or y.requires_grad,
+        requires_grad=self.requires_grad or other.requires_grad,
     )
 
 
-def _neg_dispatcher(x: Scalar):
+def _neg_dispatcher(self: Scalar) -> Scalar:
     """Dispatches negation operation."""
-    op_instance = Negate(x)
+    op_instance = Negate(self)
     return Scalar(
-        op_instance.forward(x.data),
+        op_instance.forward(self.data),
         op=op_instance,
-        requires_grad=x.requires_grad,
+        requires_grad=self.requires_grad,
     )
 
 
-def _sub_dispatcher(x: Scalar, y: Scalar | int | float):
+def _sub_dispatcher(self: Scalar, other: Scalar | int | float) -> Scalar:
     """Dispatches subtraction operation."""
-    return x + (-y)
+    return self + (-other)
 
 
-def _rsub_dispatcher(y: Scalar, x: Scalar | int | float):
+def _rsub_dispatcher(self: Scalar, other: Scalar | int | float) -> Scalar:
     """Dispatches subtraction operation."""
     # Prevents triggering __radd__ and doing another reversal
-    x = _coerce_to_scalar(x)
-    return x + (-y)
+    other = _coerce_to_scalar(other)
+    return other + (-self)
 
 
-def _pow_dispatcher(x: Scalar, y: int | float):
+def _pow_dispatcher(self: Scalar, other: int | float) -> Scalar:
     """Dispatches power operation."""
-    op_instance = Power(x)
+    op_instance = Power(self)
     return Scalar(
-        op_instance.forward(x.data, y),
+        op_instance.forward(self.data, other),
         op=op_instance,
-        requires_grad=x.requires_grad,
+        requires_grad=self.requires_grad,
     )
 
 
-def exp(x) -> Scalar:
+def exp(x: Scalar | int | float) -> Scalar:
     """Exponentiates a Scalar."""
     x = _coerce_to_scalar(x)
     op_instance = Exp(x)
@@ -225,7 +225,7 @@ def exp(x) -> Scalar:
     )
 
 
-def tanh(x) -> Scalar:
+def tanh(x: Scalar | int | float) -> Scalar:
     """Computes tanh of a Scalar."""
     x = _coerce_to_scalar(x)
     op_instance = Tanh(x)
@@ -239,7 +239,7 @@ def tanh(x) -> Scalar:
 Scalar.__add__ = _add_dispatcher
 Scalar.__radd__ = _radd_dispatcher
 Scalar.__mul__ = _mul_dispatcher
-Scalar.__rmul__ = _mul_dispatcher
+Scalar.__rmul__ = _mul_dispatcher  # create _rmul_dispatcher to address operand reversal
 Scalar.__neg__ = _neg_dispatcher
 Scalar.__sub__ = _sub_dispatcher
 Scalar.__rsub__ = _rsub_dispatcher

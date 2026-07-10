@@ -48,6 +48,13 @@ repos:
         types: [python]
         stages: [pre-commit]
         pass_filenames: false
+      - id: ty-check
+        name: ty type check
+        entry: uv run ty check
+        language: system
+        types: [python]
+        stages: [pre-commit]
+        pass_filenames: false
   - repo: local
     hooks:
       - id: enforce-branch-name

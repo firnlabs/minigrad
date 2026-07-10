@@ -1,5 +1,7 @@
 """Tests for `scalar/engine.py`."""
 
+from typing import Any
+
 from minigrad.scalar import Scalar
 
 
@@ -27,7 +29,7 @@ def test_op_setter() -> None:
     class MockOp:
         op_type = "mock"
 
-    mock_op = MockOp()
+    mock_op: Any = MockOp()
     x.op = mock_op
     assert x.op is mock_op
 
@@ -58,7 +60,7 @@ def test_repr_with_op() -> None:
     class MockOp:
         op_type = "mock_op"
 
-    mock_op = MockOp()
+    mock_op: Any = MockOp()
     x = Scalar(2, op=mock_op, name="x")
     assert repr(x) == "Scalar(data=2.0, op=mock_op, name=x, requires_grad=False)"
 

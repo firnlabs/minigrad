@@ -4,7 +4,7 @@ from collections.abc import Callable
 import math
 
 
-def numeric_gradient(f: Callable, x: float, h: float = 1e-6) -> float:
+def numeric_gradient(f: Callable[[float], float], x: float, h: float = 1e-6) -> float:
     """Compute the numerical gradient of f(x).
 
     Uses symmetric difference quotient to approximate the derivative of f at x.
@@ -23,7 +23,11 @@ def numeric_gradient(f: Callable, x: float, h: float = 1e-6) -> float:
 
 
 def check_gradient(
-    grad: float, f: Callable, x: float, h: float = 1e-6, tol: float = 1e-4
+    grad: float,
+    f: Callable[[float], float],
+    x: float,
+    h: float = 1e-6,
+    tol: float = 1e-4,
 ) -> tuple[bool, float]:
     """Check if the analytical gradient matches the numerical gradient.
 

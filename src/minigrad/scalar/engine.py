@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Avoid circular import of ops by placing it under TYPE_CHECKING
+    from minigrad.scalar.ops import Op
 
 
 class Scalar:
@@ -11,7 +15,7 @@ class Scalar:
     def __init__(
         self,
         data: int | float,
-        op: Any = None,
+        op: Op | None = None,
         name: str | None = None,
         requires_grad: bool = False,
     ) -> None:
@@ -43,11 +47,11 @@ class Scalar:
         return self._data
 
     @property
-    def op(self):
+    def op(self) -> Op | None:
         return self._op
 
     @op.setter
-    def op(self, op_instance) -> None:
+    def op(self, op_instance: Op | None) -> None:
         self._op = op_instance
 
     @property
@@ -83,7 +87,7 @@ class Scalar:
         topo = []
         visited = set()
 
-        def build_topo(v: Scalar) -> None:
+        def build_topo(v):
             if v not in visited:
                 visited.add(v)
                 if v.op is not None:

@@ -25,14 +25,8 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
-      - name: Run code style checks
-        run: uv run ruff check .
-
-      - name: Run docformatter check
-        run: uv run docformatter --check -r src tests
-
-      - name: Run pydoclint check
-        run: uv run pydoclint src tests
+      - name: Run static code analysis (pre-commit)
+        uses: pre-commit/action@v3.0.1
 
       - name: Run tests with coverage
         run: uv run pytest tests/ --cov=src --cov-report=term-missing

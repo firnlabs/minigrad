@@ -20,6 +20,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.15.20",
+    "ty>=0.0.58",
 ]
 
 [tool.pytest.ini_options]
@@ -39,7 +40,8 @@ show_missing = true
 exclude_lines = [
     "pragma: no cover",
     "raise NotImplementedError",
-    "if __name__ == .__main__.:"  # dots: regex to consider "__main__" or '__main__'
+    "if __name__ == .__main__.:",  # dots: regex to consider "__main__" or '__main__'
+    "if TYPE_CHECKING:",
 ]
 
 [tool.ruff]
@@ -84,3 +86,17 @@ arg-type-hints-in-signature = true
 skip-checking-private-functions = true
 check-return-types = false
 check-yield-types = false
+
+[tool.ty.environment]
+python-version = "3.11"
+
+[tool.ty.rules]
+# Ignore LSP overrides check since custom Op forward/backward have varying arity by design in autograd.
+invalid-method-override = "ignore"
+# Enforce explicit rule codes in ignore comments, aligning with Google's clean & readable code style guidelines.
+blanket-ignore-comment = "warn"
+# Require type arguments for generic collections, reinforcing explicit type safety.
+missing-type-argument = "warn"
+# Flag unused ignores to keep type-checking annotations clean and up-to-date.
+unused-ignore-comment = "warn"
+unused-type-ignore-comment = "warn"

@@ -1,6 +1,7 @@
 """Tests for `ops.py`."""
 
 import math
+from typing import Any
 
 import pytest
 
@@ -12,6 +13,11 @@ BINARY_OPERAND_CASES = [(2.0, 3.0, 2.0)]
 
 # x, upstream_grad
 UNARY_OPERAND_CASES = [(2.0, 2.0)]
+
+
+def _get_op(x: Scalar) -> Any:
+    assert x.op is not None
+    return x.op
 
 
 def test_init_subclass():
@@ -32,7 +38,7 @@ def test_add_forward_backward(x_val, y_val, upstream_grad):
     z = x + y
     exp_val = x_val + y_val
     assert z.data == exp_val
-    grads = z.op.backward(upstream_grad)
+    grads = _get_op(z).backward(upstream_grad)
     exp_grads = (upstream_grad, upstream_grad)
     assert grads == exp_grads
 
@@ -44,10 +50,10 @@ def test_radd_forward_backward(x_val, y_val, upstream_grad):
     z = x + y
     exp_val = x_val + y_val
     assert z.data == exp_val
-    grads = z.op.backward(upstream_grad)
+    grads = _get_op(z).backward(upstream_grad)
     exp_grads = (upstream_grad, upstream_grad)
     assert grads == exp_grads
-    assert z.op.parents[1] == y
+    assert _get_op(z).parents[1] == y
 
 
 @pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
@@ -57,7 +63,7 @@ def test_mul_forward_backward(x_val, y_val, upstream_grad):
     z = x * y
     exp_val = x_val * y_val
     assert z.data == exp_val
-    grads = z.op.backward(upstream_grad)
+    grads = _get_op(z).backward(upstream_grad)
     exp_grads = (upstream_grad * y_val, upstream_grad * x_val)
     assert grads == exp_grads
 
@@ -69,7 +75,7 @@ def test_rmul_forward_backward(x_val, y_val, upstream_grad):
     z = x * y
     exp_val = x_val * y_val
     assert z.data == exp_val
-    grads = z.op.backward(upstream_grad)
+    grads = _get_op(z).backward(upstream_grad)
     # operands are swapped (i.e. y * x)
     exp_grads = (upstream_grad * x_val, upstream_grad * y_val)
     assert grads == exp_grads
@@ -81,7 +87,7 @@ def test_neg_forward_backward(x_val, upstream_grad):
     z = -x
     exp_val = -x_val
     assert z.data == exp_val
-    grad = z.op.backward(upstream_grad)
+    grad = _get_op(z).backward(upstream_grad)
     exp_grad = -upstream_grad
     assert grad == exp_grad
 
@@ -93,13 +99,13 @@ def test_sub_forward_backward(x_val, y_val, upstream_grad):
     z = x - y
     exp_val = x_val - y_val
     assert z.data == exp_val
-    grads = z.op.backward(upstream_grad)
+    grads = _get_op(z).backward(upstream_grad)
     # NOTE: subtraction is implemented as addition, i.e. x + (-y)
     # Need to perform manual backprop to get gradient for y
     x_grad = grads[0]
     assert x_grad == upstream_grad
-    neg_y = z.op.parents[1]
-    y_grad = neg_y.op.backward(grads[1])
+    neg_y = _get_op(z).parents[1]
+    y_grad = _get_op(neg_y).backward(grads[1])
     assert y_grad == -upstream_grad
 
 
@@ -110,13 +116,13 @@ def test_rsub_forward_backward(x_val, y_val, upstream_grad):
     z = x - y
     exp_val = x_val - y_val
     assert z.data == exp_val
-    grads = z.op.backward(upstream_grad)
+    grads = _get_op(z).backward(upstream_grad)
     # NOTE: subtraction is implemented as addition, i.e. x + (-y)
     # Need to perform manual backprop to get gradient for y
     x_grad = grads[0]
     assert x_grad == upstream_grad
-    neg_y = z.op.parents[1]
-    y_grad = neg_y.op.backward(grads[1])
+    neg_y = _get_op(z).parents[1]
+    y_grad = _get_op(neg_y).backward(grads[1])
     assert y_grad == -upstream_grad
 
 
@@ -126,7 +132,7 @@ def test_pow_forward_backward(x_val, c, upstream_grad):
     z = x**c
     exp_val = x_val**c
     assert z.data == exp_val
-    grad = z.op.backward(upstream_grad)
+    grad = _get_op(z).backward(upstream_grad)
     exp_grad = upstream_grad * c * x_val ** (c - 1)
     assert grad == exp_grad
 
@@ -137,7 +143,7 @@ def test_exp_forward_backward(x_val, upstream_grad):
     z = ops.exp(x)
     exp_val = math.exp(x_val)
     assert z.data == exp_val
-    grad = z.op.backward(upstream_grad)
+    grad = _get_op(z).backward(upstream_grad)
     exp_grad = upstream_grad * exp_val
     assert grad == exp_grad
 
@@ -148,6 +154,6 @@ def test_tanh_forward_backward(x_val, upstream_grad):
     z = ops.tanh(x)
     exp_val = math.tanh(x_val)
     assert z.data == exp_val
-    grad = z.op.backward(upstream_grad)
+    grad = _get_op(z).backward(upstream_grad)
     exp_grad = upstream_grad * (1 - exp_val**2)
     assert grad == exp_grad
