@@ -187,6 +187,18 @@ toml = [
 ]
 
 [[package]]
+name = "coverage-threshold"
+version = "0.6.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "toml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7c/e9/4c71f8ed66d0bcfe0d0eba4abfa82b1394040404c4cf0ae52db6c99a865c/coverage_threshold-0.6.2.tar.gz", hash = "sha256:a56bfd6148a01177776f28fcabd754d1ee34ad5c112366c5e346ad1c12ad1fd8", size = 24562, upload-time = "2025-05-25T01:47:12.057Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/94/511548af8257b0d7da228aeecb6a177a614aaa68009f563ac032162b1b47/coverage_threshold-0.6.2-py3-none-any.whl", hash = "sha256:2610daf03a04c0bed7d64b9aff70616ef204c6ca989965f4fd296c351d897626", size = 12925, upload-time = "2025-05-25T01:47:10.79Z" },
+]
+
+[[package]]
 name = "docformatter"
 version = "1.7.8"
 source = { registry = "https://pypi.org/simple" }
@@ -223,6 +235,7 @@ source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "coverage-threshold" },
     { name = "docformatter" },
     { name = "pydoclint" },
     { name = "pytest" },
@@ -235,6 +248,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "coverage-threshold", specifier = ">=0.6.2" },
     { name = "docformatter", specifier = ">=1.7.8" },
     { name = "pydoclint", specifier = ">=0.9.1" },
     { name = "pytest", specifier = ">=9.1.1" },
@@ -336,6 +350,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/10/9b/5f14927848d2fd4aa891fd88d883788c5a7baba561c7874732364045708c/ruff-0.15.20-py3-none-win32.whl", hash = "sha256:ed65ef510e43a137207e0f01cfcf998aeddb1aeeda5c9d35023e910284d7cf21", size = 10857322, upload-time = "2026-06-25T17:20:28.612Z" },
     { url = "https://files.pythonhosted.org/packages/fa/f0/fe47c501f9dea92a26d788ff98bb5d92ed4cb4c88792c5c88af6b697dc8e/ruff-0.15.20-py3-none-win_amd64.whl", hash = "sha256:a525c81c70fb0380344dd1d8745d8cc1c890b7fc94a58d5a07bd8eb9557b8415", size = 11993274, upload-time = "2026-06-25T17:20:31.871Z" },
     { url = "https://files.pythonhosted.org/packages/d7/2b/9555445e1201d92b3195f45cdb153a0b68f24e0a4273f6e3d5ab46e212bb/ruff-0.15.20-py3-none-win_arm64.whl", hash = "sha256:2f5b2a6d614e8700388806a14996c40fab2c47b819ef57d790a34878858ed9ca", size = 11343498, upload-time = "2026-06-25T17:20:35.03Z" },
+]
+
+[[package]]
+name = "toml"
+version = "0.10.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/ba/1f744cdc819428fc6b5084ec34d9b30660f6f9daaf70eead706e3203ec3c/toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f", size = 22253, upload-time = "2020-11-01T01:40:22.204Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/44/6f/7120676b6d73228c96e17f1f794d8ab046fc910d781c8d151120c3f1569e/toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b", size = 16588, upload-time = "2020-11-01T01:40:20.672Z" },
 ]
 
 [[package]]
