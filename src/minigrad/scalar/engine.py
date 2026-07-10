@@ -46,6 +46,10 @@ class Scalar:
         """Returns the stored data."""
         return self._data
 
+    @data.setter
+    def data(self, value: float) -> None:
+        self._data = value
+
     @property
     def op(self) -> Op | None:
         return self._op
@@ -109,3 +113,8 @@ class Scalar:
                         if parent.grad is None:
                             parent.grad = 0.0
                         parent.grad += grad
+
+    def __iadd__(self, other: float) -> Scalar:
+        """Implements increment by value operation."""
+        self._data += other
+        return self

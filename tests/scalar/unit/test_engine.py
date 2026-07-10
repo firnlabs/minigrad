@@ -51,6 +51,12 @@ def test_data_property() -> None:
     assert x.data == 2.5
 
 
+def test_data_setter() -> None:
+    x = Scalar(2.5)
+    x.data = 3.0
+    assert x.data == 3.0
+
+
 def test_repr_without_op() -> None:
     x = Scalar(2, name="x")
     assert repr(x) == "Scalar(data=2.0, op=none, name=x, requires_grad=False)"
@@ -75,3 +81,9 @@ def test_backward_grad_disabled() -> None:
     assert z.grad is None
     assert x.grad is None
     assert y.grad is None
+
+
+def test_increment() -> None:
+    x = Scalar(2.0)
+    x += 1.0
+    assert x.data == 3.0
