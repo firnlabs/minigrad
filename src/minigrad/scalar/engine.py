@@ -60,3 +60,28 @@ class Scalar:
     def data(self) -> float:
         """Returns the stored data."""
         return self._data
+
+    def backward(self) -> None:
+        """Runs backpropagation and computes gradients."""
+        topo = []
+        visited = set()
+
+        def build_topo(v: Scalar) -> None:
+            if v not in visited:
+                visited.add(v)
+                if v.op is not None:
+                    for parent in v.op.parents:
+                        build_topo(parent)
+                topo.append(v)
+
+        build_topo(self)
+
+        self._grad = 1.0
+        for node in reversed(topo):
+            if node.op is not None:
+                input_grads = node.op.backward(node.grad)
+                if not isinstance(input_grads, tuple):
+                    input_grads = (input_grads,)
+
+                for parent, grad in zip(node.op.parents, input_grads, strict=True):
+                    parent.grad += grad

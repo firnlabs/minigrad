@@ -40,13 +40,14 @@ def test_add_forward_backward(x_val, y_val, upstream_grad):
 @pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
 def test_radd_forward_backward(x_val, y_val, upstream_grad):
     x = x_val
-    y = Scalar(y_val)
+    y = Scalar(y_val, name="y")
     z = x + y
     exp_val = x_val + y_val
     assert z.data == exp_val
     grads = z.op.backward(upstream_grad)
     exp_grads = (upstream_grad, upstream_grad)
     assert grads == exp_grads
+    assert z.op.parents[1] == y
 
 
 @pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
@@ -105,19 +106,18 @@ def test_sub_forward_backward(x_val, y_val, upstream_grad):
 @pytest.mark.parametrize("x_val, y_val, upstream_grad", BINARY_OPERAND_CASES)
 def test_rsub_forward_backward(x_val, y_val, upstream_grad):
     x = x_val
-    y = Scalar(y_val)
+    y = Scalar(y_val, name="y")
     z = x - y
     exp_val = x_val - y_val
     assert z.data == exp_val
     grads = z.op.backward(upstream_grad)
     # NOTE: subtraction is implemented as addition, i.e. x + (-y)
     # Need to perform manual backprop to get gradient for y
-    # `rsub` will swap the operands, since x is a float, i.e.  (-y) + x
-    neg_y = z.op.parents[0]
-    y_grad = neg_y.op.backward(grads[0])
-    assert y_grad == -upstream_grad
-    x_grad = grads[1]
+    x_grad = grads[0]
     assert x_grad == upstream_grad
+    neg_y = z.op.parents[1]
+    y_grad = neg_y.op.backward(grads[1])
+    assert y_grad == -upstream_grad
 
 
 @pytest.mark.parametrize("x_val, c, upstream_grad", BINARY_OPERAND_CASES)

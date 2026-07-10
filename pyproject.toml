@@ -29,6 +29,7 @@ python_files = ["test_*.py"]
 # --cov-report=term-missing: report code lines not covered
 # --cov-report=html: generate HTML report
 addopts = "--cov=minigrad --cov-report=term-missing --cov-report=html"
+pythonpath = ["."]
 
 [tool.coverage.run]
 branch = true

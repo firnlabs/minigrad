@@ -2,6 +2,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
-        "tests"
+        "tests",
+        "--no-cov"
     ]
 }

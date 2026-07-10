@@ -163,6 +163,11 @@ def _add_dispatcher(x, y):
     return Scalar(op_instance.forward(x.data, y.data), op=op_instance)
 
 
+def _radd_dispatcher(y, x):
+    x = _coerce_to_scalar(x)
+    return x + y
+
+
 def _mul_dispatcher(a, b):
     """Dispatches multiplication operation."""
     a = _coerce_to_scalar(a)
@@ -185,6 +190,8 @@ def _sub_dispatcher(a, b):
 
 def _rsub_dispatcher(b, a):
     """Dispatches subtraction operation."""
+    # Prevents triggering __radd__ and doing another reversal
+    a = _coerce_to_scalar(a)
     return a + (-b)
 
 
@@ -209,7 +216,7 @@ def tanh(a) -> Scalar:
 
 
 Scalar.__add__ = _add_dispatcher
-Scalar.__radd__ = _add_dispatcher
+Scalar.__radd__ = _radd_dispatcher
 Scalar.__mul__ = _mul_dispatcher
 Scalar.__rmul__ = _mul_dispatcher
 Scalar.__neg__ = _neg_dispatcher
