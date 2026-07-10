@@ -60,7 +60,7 @@ class Scalar:
 
     @property
     def grad(self) -> float | None:
-        """Returns computed gradient if it exits, None otherwise."""
+        """Returns computed gradient if it exists, None otherwise."""
         return self._grad
 
     @grad.setter

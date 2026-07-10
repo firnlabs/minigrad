@@ -8,6 +8,15 @@ from minigrad.scalar import Scalar
 from tests.verification import gradcheck
 
 
+def _check_gradient(target: Scalar, f: Callable) -> None:
+    """Check if the analytical gradient matches the numerical gradient."""
+    is_match, num_grad = gradcheck.check_gradient(grad=target.grad, f=f, x=target.data)
+    assert is_match, (
+        f"Gradient check failed for {target.name}:"
+        f" expected {num_grad}, actual: {target.grad}"
+    )
+
+
 def test_backprop_no_value_reuse() -> None:
     """Tests backpropagation of gradients with no value reuse."""
     a = Scalar(2.0, name="a", requires_grad=True)
@@ -44,8 +53,8 @@ def test_backprop_value_reuse() -> None:
 
 def test_backprop_perceptron() -> None:
     """Tests backpropagation of gradients in a simple perceptron."""
-    x1 = Scalar(1.0, name="x1", requires_grad=False)
-    x2 = Scalar(2.0, name="x2", requires_grad=False)
+    x1 = Scalar(1.0, name="x1")
+    x2 = Scalar(2.0, name="x2")
     w1 = Scalar(3.0, name="w1", requires_grad=True)
     w2 = Scalar(-1.0, name="w2", requires_grad=True)
     b = Scalar(0.5, name="b", requires_grad=True)
@@ -62,18 +71,62 @@ def test_backprop_perceptron() -> None:
         z_val = x1.data * w1_val + x2.data * w2_val + b_val
         return math.tanh(z_val)
 
-    def check(target: Scalar, f: Callable) -> None:
-        """Check if the analytical gradient matches the numerical gradient."""
-        is_match, num_grad = gradcheck.check_gradient(
-            grad=target.grad, f=f, x=target.data
-        )
-        assert is_match, (
-            f"Gradient check failed for {target.name}:"
-            f" expected {num_grad}, actual: {target.grad}"
-        )
-
-    check(w1, lambda w1_val: func(w1_val, w2.data, b.data))
-    check(w2, lambda w2_val: func(w1.data, w2_val, b.data))
-    check(b, lambda b_val: func(w1.data, w2.data, b_val))
+    _check_gradient(w1, lambda w1_val: func(w1_val, w2.data, b.data))
+    _check_gradient(w2, lambda w2_val: func(w1.data, w2_val, b.data))
+    _check_gradient(b, lambda b_val: func(w1.data, w2.data, b_val))
     assert x1.grad is None
     assert x2.grad is None
+
+
+def test_backprop_perceptron_mse_loss() -> None:
+    """Tests backpropagation on loss function over a simple perceptron."""
+    x1 = Scalar(1.0, name="x1")
+    x2 = Scalar(2.0, name="x2")
+    w1 = Scalar(3.0, name="w1", requires_grad=True)
+    w2 = Scalar(-1.0, name="w2", requires_grad=True)
+    b = Scalar(0.5, name="b", requires_grad=True)
+    y = Scalar(-2, name="y")
+
+    # Forward pass
+    z1 = x1 * w1
+    z2 = x2 * w2
+    a = z1 + z2
+    c = a + b
+    y_pred = ops.tanh(c)
+    d = y_pred - y
+    p = d**2
+    loss = 0.5 * p
+
+    # Backward pass
+    loss.backward()
+
+    assert loss.grad == 1.0
+    assert p.grad == 0.5
+    assert d.grad == p.grad * 2 * d.data
+    assert y.grad is None
+    assert y_pred.grad == d.grad
+    assert c.grad == y_pred.grad * (1 - y_pred.data**2)
+    assert a.grad == c.grad
+    assert b.grad == c.grad
+    assert z1.grad == a.grad
+    assert z2.grad == a.grad
+    assert w1.grad == z1.grad * x1.data
+    assert w2.grad == z2.grad * x2.data
+    assert x1.grad is None
+    assert x2.grad is None
+
+    # Numeric gradient checks
+    def func(w1_val: float, w2_val: float, b_val: float) -> float:
+        z1_val = x1.data * w1_val
+        z2_val = x2.data * w2_val
+        a_val = z1_val + z2_val
+        c_val = a_val + b_val
+        y_pred_val = math.tanh(c_val)
+        d_val = y_pred_val - y.data
+        p_val = d_val**2
+        loss_val = 0.5 * p_val
+        return loss_val
+
+    _check_gradient(w1, lambda w1_val: func(w1_val, w2.data, b.data))
+    _check_gradient(w2, lambda w2_val: func(w1.data, w2_val, b.data))
+    _check_gradient(b, lambda b_val: func(w1.data, w2.data, b_val))
