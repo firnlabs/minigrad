@@ -72,7 +72,7 @@ class Scalar:
         return self._grad
 
     @grad.setter
-    def grad(self, value: float) -> None:
+    def grad(self, value: float | None) -> None:
         self._grad = value
 
     @property
