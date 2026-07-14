@@ -37,7 +37,9 @@ python_files = ["test_*.py"]
 # --cov-report=term-missing: report code lines not covered
 # --cov-report=html: generate HTML report
 # --cov-report=json: generate JSON report for coverage-threshold
-addopts = "--cov=minigrad --cov-report=term-missing --cov-report=html --cov-report=json"
+# --import-mode=importlib: Use importlib library to load test module directly from its
+#   file path; allows duplicate test file names (e.g. test_engine.py)
+addopts = "--cov=minigrad --cov-report=term-missing --cov-report=html --cov-report=json --import-mode=importlib"
 pythonpath = ["."]
 
 [tool.coverage.run]
