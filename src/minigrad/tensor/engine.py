@@ -1,9 +1,13 @@
 """Tensor autograd engine."""
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
+
+if TYPE_CHECKING:
+    from minigrad.tensor.ops import Op
 
 
 class Tensor:
@@ -12,7 +16,7 @@ class Tensor:
     def __init__(
         self,
         data: Sequence[int | float] | NDArray,
-        op: None = None,  # TODO: add proper Op type
+        op: "Op | None" = None,
         name: str | None = None,
         requires_grad: bool = False,
     ) -> None:
@@ -34,7 +38,7 @@ class Tensor:
         return self._data
 
     @property
-    def op(self) -> None:  # TODO: Add proper Op type
+    def op(self) -> "Op | None":
         return self._op
 
     @property
