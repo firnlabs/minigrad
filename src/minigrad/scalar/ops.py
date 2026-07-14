@@ -24,7 +24,7 @@ class OpType(enum.StrEnum):
 
 
 class Op(abc.ABC):
-    """Base class for operations on Values."""
+    """Base class for operations on Scalar."""
 
     op_type: OpType = OpType.UNDEFINED
 
