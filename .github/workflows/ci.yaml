@@ -25,6 +25,9 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
+      - name: Install notebook dependencies
+        run: uv sync --locked --group notebook
+
       - name: Run static code analysis (pre-commit)
         uses: pre-commit/action@v3.0.1
 

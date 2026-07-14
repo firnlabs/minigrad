@@ -29,7 +29,7 @@ class Optimizer(abc.ABC):
 class SGD(Optimizer):
     """Stochastic Gradient Descent optimizer."""
 
-    def __init__(self, parameters: list[Scalar], lr: float = 0.1) -> None:
+    def __init__(self, parameters: Sequence[Scalar], lr: float = 0.1) -> None:
         super().__init__(parameters)
         self.lr = lr
 

@@ -10,17 +10,16 @@ class Module(abc.ABC):
     """Base class for all neural network modules."""
 
     def __init__(self, *args, **kwargs) -> None:
-        self._parameters: Sequence[Scalar] | None = None
+        self._parameters: Sequence[Scalar] = []
 
     @property
-    def parameters(self) -> Sequence[Scalar] | None:
+    def parameters(self) -> Sequence[Scalar]:
         return self._parameters
 
     def zero_grad(self) -> None:
         """Zeros gradients of all parameters."""
-        if self.parameters is not None:
-            for p in self.parameters:
-                p.grad = None
+        for p in self.parameters:
+            p.grad = None
 
     @abc.abstractmethod
     def forward(self, *args, **kwargs):

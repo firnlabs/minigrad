@@ -17,6 +17,10 @@ repos:
       - id: end-of-file-fixer        # Ensures files end with a newline character
       - id: check-yaml               # Validates syntax for your yaml configuration files
       - id: check-added-large-files  # Prevents accidentally staging gigantic binaries (>500KB)
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
   - repo: local
     hooks:
       - id: ruff-check
@@ -58,7 +62,7 @@ repos:
   - repo: local
     hooks:
       - id: enforce-branch-name
-        name: Enforce Branch Naming Conventions
+        name: Enforce branch naming conventions
         entry: uv run python ./scripts/enforce_branch_names.py
         language: system
         stages: [pre-push]
