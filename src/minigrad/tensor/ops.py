@@ -36,14 +36,14 @@ class Op(abc.ABC):
             "All inputs must be Tensor instances."
         )
         self._parents: Sequence[Tensor] = inputs
-        self._saved_values: list[int | float | NDArray] = []
+        self._saved_values: list[NDArray] = []
 
     @property
     def parents(self) -> Sequence[Tensor]:
         return self._parents
 
     @property
-    def saved_values(self) -> list[int | float | NDArray]:
+    def saved_values(self) -> list[NDArray]:
         return self._saved_values
 
     def save_for_backward(self, *values) -> None:
@@ -59,21 +59,65 @@ class Op(abc.ABC):
         """Backward pass of the operation."""
 
 
+def unbroadcast(grad: NumericArray, target_shape: tuple[int, ...]) -> NumericArray:
+    """Sum out broadcasted dimensions of `grad` to match `target_shape`.
+
+    Args:
+        grad: Gradient array to unbroadcast.
+        target_shape: Target shape of the unbroadcasted gradient.
+
+    Returns:
+        grad array with certain dimensions summed to match `target_shape` if needed.
+    """
+    # Shape is the same, no change needed
+    if grad.shape == target_shape:
+        return grad
+
+    # Determine axes to sum
+    ndim_diff = grad.ndim - len(target_shape)
+    axes = []
+    for i in range(grad.ndim):
+        # Treat prepended dimensions as size 1
+        # e.g. given grad.shape = (2, 5, 3) and target_shape = (5, 1),
+        # target_shape is treated as (1, 5, 1)
+        target_dim = 1 if i < ndim_diff else target_shape[i - ndim_diff]
+        if grad.shape[i] != target_dim:
+            axes.append(i)
+
+    if axes:
+        grad = grad.sum(axis=tuple(axes), keepdims=True)
+
+    # Remove any extra dimensions in final grad to match target_shape
+    return grad.reshape(target_shape)
+
+
 class Add(Op):
     """Addition operation."""
 
     op_type = OpType.ADD
 
     def forward(self, x: NumericArray, y: NumericArray) -> NumericArray:
+        self.save_for_backward(x, y)
         return cast(NumericArray, x + y)
 
     def backward(self, grad_output: NumericArray) -> tuple[NumericArray, NumericArray]:
-        # TODO: support "unbroadcasting" of upstream gradient depending on input shapes
-        return grad_output, grad_output
+        x, y = self.saved_values
+        return (
+            unbroadcast(grad_output, x.shape),
+            unbroadcast(grad_output, y.shape),
+        )
 
 
-def _add_dispatcher(self: Tensor, other: Tensor) -> Tensor:
+def _coerce_to_tensor(value: int | float | NumericArray | Tensor) -> Tensor:
+    if isinstance(value, Tensor):
+        return value
+
+    return Tensor(value)
+
+
+def _add_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) -> Tensor:
     """Dispatches addition operation."""
+    other = _coerce_to_tensor(other)
     op = Add(self, other)
     return Tensor(
         op.forward(self.data, other.data),
@@ -82,4 +126,13 @@ def _add_dispatcher(self: Tensor, other: Tensor) -> Tensor:
     )
 
 
+def _radd_dispatcher(
+    self: Tensor, other: int | float | NumericArray | Tensor
+) -> Tensor:
+    other = _coerce_to_tensor(other)
+    return other + self
+
+
 Tensor.__add__ = _add_dispatcher
+Tensor.__radd__ = _radd_dispatcher
+# TODO: implement __iadd__

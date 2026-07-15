@@ -15,7 +15,7 @@ class Tensor:
 
     def __init__(
         self,
-        data: Sequence[int | float] | NDArray,
+        data: int | float | Sequence[int | float] | NDArray,
         op: "Op | None" = None,
         name: str | None = None,
         requires_grad: bool = False,
