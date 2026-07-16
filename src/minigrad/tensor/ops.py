@@ -15,6 +15,7 @@ class OpType(enum.StrEnum):
     """Operation types."""
 
     ADD = enum.auto()
+    MULTIPLY = enum.auto()
     UNDEFINED = enum.auto()
 
 
@@ -108,6 +109,29 @@ class Add(Op):
         )
 
 
+class Multiply(Op):
+    """Tensor Hadamard product operation."""
+
+    op_type = OpType.MULTIPLY
+
+    def forward(self, x: NumericArray, y: NumericArray) -> NumericArray:
+        self.save_for_backward(x, y)
+        return cast(NumericArray, x * y)
+
+    def backward(self, grad_output: NumericArray) -> tuple[NumericArray, NumericArray]:
+        x, y = self.saved_values
+        return (
+            unbroadcast(grad_output * y, x.shape),
+            unbroadcast(grad_output * x, y.shape),
+        )
+
+
+# TODO: implement MatMul
+# TODO: implement Negate
+# TODO: implement Power
+# TODO: implement Tanh
+
+
 def _coerce_to_tensor(value: int | float | NumericArray | Tensor) -> Tensor:
     if isinstance(value, Tensor):
         return value
@@ -133,6 +157,25 @@ def _radd_dispatcher(
     return other + self
 
 
+def _mul_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) -> Tensor:
+    """Dispatches addition operation."""
+    other = _coerce_to_tensor(other)
+    op = Multiply(self, other)
+    return Tensor(
+        op.forward(self.data, other.data),
+        op=op,
+        requires_grad=self.requires_grad or other.requires_grad,
+    )
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
 # TODO: implement __iadd__
+Tensor.__mul__ = _mul_dispatcher
+# TODO: implement _rmul_
+# TODO: implement __neg__
+# TODO: implement __matmul__
+# TODO: implement __rmatmul__
+# TODO: implement __sub__
+# TODO: implement __rsub__
+# TODO: implement __pow__

@@ -109,6 +109,64 @@ class TestAdd:
         assert np.allclose(z.data, np.array([4.0, 5.0]))
 
 
+class TestMultiply:
+    """Tests for Multiply class."""
+
+    def test_forward_backward_no_broadcast(self) -> None:
+        x = Tensor(
+            np.array(
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ]
+            )
+        )
+        y = Tensor(
+            np.array(
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ]
+            )
+        )
+
+        # forward pass
+        z = x * y
+
+        exp_data = np.array(
+            [
+                [2.0, 6.0],
+                [12.0, 20.0],
+            ]
+        )
+        assert np.allclose(z.data, exp_data)
+
+        # backward pass
+        grad_output = np.array(
+            [
+                [2.0, 2.0],
+                [2.0, 2.0],
+            ]
+        )
+        assert z.op is not None
+        x_grad, y_grad = z.op.backward(grad_output)
+
+        exp_x_grad = np.array(
+            [
+                [4.0, 6.0],
+                [8.0, 10.0],
+            ]
+        )
+        exp_y_grad = np.array(
+            [
+                [2.0, 4.0],
+                [6.0, 8.0],
+            ]
+        )
+        assert np.allclose(x_grad, exp_x_grad)
+        assert np.allclose(y_grad, exp_y_grad)
+
+
 @pytest.mark.parametrize(
     "grad, target_shape, expected",
     [
