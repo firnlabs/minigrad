@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from minigrad.tensor._types import NestedSequence
+from minigrad.tensor._types import NestedNumSequence
 from minigrad.tensor._types import NumArray
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ class Tensor:
 
     def __init__(
         self,
-        data: NestedSequence | NumArray,
+        data: NestedNumSequence | NumArray,
         op: "Op | None" = None,
         name: str | None = None,
         requires_grad: bool = False,

@@ -6,4 +6,4 @@ import numpy as np
 from numpy.typing import NDArray
 
 NumArray: TypeAlias = NDArray[np.integer[Any] | np.floating[Any]]
-NestedSequence: TypeAlias = int | float | Sequence["NestedSequence"]
+NestedNumSequence: TypeAlias = int | float | Sequence["NestedNumSequence"]

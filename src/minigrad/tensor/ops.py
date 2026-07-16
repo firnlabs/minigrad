@@ -5,7 +5,7 @@ from collections.abc import Sequence
 import enum
 
 from minigrad.tensor import Tensor
-from minigrad.tensor._types import NestedSequence
+from minigrad.tensor._types import NestedNumSequence
 from minigrad.tensor._types import NumArray
 
 
@@ -130,14 +130,16 @@ class Multiply(Op):
 # TODO: implement Tanh
 
 
-def _coerce_to_tensor(value: NestedSequence | NumArray | Tensor) -> Tensor:
+def _coerce_to_tensor(value: NestedNumSequence | NumArray | Tensor) -> Tensor:
     if isinstance(value, Tensor):
         return value
 
     return Tensor(value)
 
 
-def _add_dispatcher(self: Tensor, other: NestedSequence | NumArray | Tensor) -> Tensor:
+def _add_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
     """Dispatches addition operation."""
     other = _coerce_to_tensor(other)
     op = Add(self, other)
@@ -148,12 +150,16 @@ def _add_dispatcher(self: Tensor, other: NestedSequence | NumArray | Tensor) -> 
     )
 
 
-def _radd_dispatcher(self: Tensor, other: NestedSequence | NumArray | Tensor) -> Tensor:
+def _radd_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
     other = _coerce_to_tensor(other)
     return other + self
 
 
-def _mul_dispatcher(self: Tensor, other: NestedSequence | NumArray | Tensor) -> Tensor:
+def _mul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
     """Dispatches addition operation."""
     other = _coerce_to_tensor(other)
     op = Multiply(self, other)
