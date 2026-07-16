@@ -1,20 +1,20 @@
 """Tests for `tensor/ops.py`."""
 
 import numpy as np
-from numpy.typing import NDArray
 import pytest
 
 from minigrad.tensor import ops
 from minigrad.tensor import Tensor
+from minigrad.tensor._types import NumArray
 
 
 class SimpleOp(ops.Op):
     op_type = ops.Add
 
-    def forward(self, array: NDArray) -> NDArray:
+    def forward(self, array: NumArray) -> NumArray:
         return array
 
-    def backward(self, array: NDArray) -> NDArray:
+    def backward(self, array: NumArray) -> NumArray:
         return array
 
 
@@ -50,6 +50,26 @@ class TestOp:
         simple_op.save_for_backward(a, c)
 
         assert simple_op.saved_values == [a, c]
+
+
+@pytest.mark.parametrize(
+    "grad, target_shape, expected",
+    [
+        # input grad: (2, 5, 3) of 1s
+        # target_shape: (5, 1) (requires summing over axis 0 and 2: 2 * 3 = 6)
+        # expected: (5, 1) of 6s
+        [np.ones((2, 5, 3)), (5, 1), np.ones((5, 1)) * 6],
+        # input grad: (1, 3) of 1s
+        # target_shape: (3,) (requires dropping prepended axis 0)
+        # expected: (3,) of 1s
+        [np.ones((1, 3)), (3,), np.ones((3,))],
+    ],
+)
+def test_unbroadcast(grad, target_shape, expected) -> None:
+    actual = ops.unbroadcast(grad, target_shape)
+
+    assert actual.shape == target_shape
+    assert np.allclose(actual, expected)
 
 
 class TestAdd:
@@ -109,21 +129,152 @@ class TestAdd:
         assert np.allclose(z.data, np.array([4.0, 5.0]))
 
 
-@pytest.mark.parametrize(
-    "grad, target_shape, expected",
-    [
-        # input grad: (2, 5, 3) of 1s
-        # target_shape: (5, 1) (requires summing over axis 0 and 2: 2 * 3 = 6)
-        # expected: (5, 1) of 6s
-        [np.ones((2, 5, 3)), (5, 1), np.ones((5, 1)) * 6],
-        # input grad: (1, 3) of 1s
-        # target_shape: (3,) (requires dropping prepended axis 0)
-        # expected: (3,) of 1s
-        [np.ones((1, 3)), (3,), np.ones((3,))],
-    ],
-)
-def test_unbroadcast(grad, target_shape, expected) -> None:
-    actual = ops.unbroadcast(grad, target_shape)
+class TestMultiply:
+    """Tests for Multiply class."""
 
-    assert actual.shape == target_shape
-    assert np.allclose(actual, expected)
+    @pytest.mark.parametrize(
+        "x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad",
+        [
+            pytest.param(
+                [1.0, 2.0],
+                [3.0, 4.0],
+                [3.0, 8.0],
+                [2.0, 2.0],
+                [6.0, 8.0],
+                [2.0, 4.0],
+                id="1d_same_shapes",
+            ),
+            pytest.param(
+                [1.0, 2.0, 3.0],
+                [2.0],
+                [2.0, 4.0, 6.0],
+                [1.0, 2.0, 3.0],
+                [2.0, 4.0, 6.0],
+                [14.0],
+                id="1d_diff_shapes",
+            ),
+            pytest.param(
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ],
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ],
+                [
+                    [2.0, 6.0],
+                    [12.0, 20.0],
+                ],
+                [
+                    [2.0, 2.0],
+                    [2.0, 2.0],
+                ],
+                [
+                    [4.0, 6.0],
+                    [8.0, 10.0],
+                ],
+                [
+                    [2.0, 4.0],
+                    [6.0, 8.0],
+                ],
+                id="2d_same_shapes",
+            ),
+            pytest.param(
+                [
+                    [1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0],
+                ],
+                [1.0, 2.0, 3.0],
+                [
+                    [1.0, 4.0, 9.0],
+                    [4.0, 10.0, 18.0],
+                ],
+                [
+                    [1.0, 1.0, 1.0],
+                    [1.0, 1.0, 1.0],
+                ],
+                [
+                    [1.0, 2.0, 3.0],
+                    [1.0, 2.0, 3.0],
+                ],
+                [5.0, 7.0, 9.0],
+                id="2d_1d_broadcasting",
+            ),
+            pytest.param(
+                [
+                    [1.0],
+                    [2.0],
+                ],
+                [
+                    [3.0, 4.0],
+                ],
+                [
+                    [3.0, 4.0],
+                    [6.0, 8.0],
+                ],
+                [
+                    [1.0, 1.0],
+                    [1.0, 1.0],
+                ],
+                [
+                    [7.0],
+                    [7.0],
+                ],
+                [
+                    [3.0, 3.0],
+                ],
+                id="2d_2d_broadcasting_different_input_shapes",
+            ),
+            pytest.param(
+                [
+                    [[1.0, 2.0]],
+                    [[3.0, 4.0]],
+                ],
+                [2.0, 3.0],
+                [
+                    [[2.0, 6.0]],
+                    [[6.0, 12.0]],
+                ],
+                [
+                    [[1.0, 1.0]],
+                    [[1.0, 1.0]],
+                ],
+                [
+                    [[2.0, 3.0]],
+                    [[2.0, 3.0]],
+                ],
+                [4.0, 6.0],
+                id="3d_1d_broadcasting",
+            ),
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad
+    ) -> None:
+        x = Tensor(x_data)
+        y = Tensor(y_data)
+
+        # forward
+        z = x * y
+        assert np.allclose(z.data, np.array(exp_forward))
+
+        # backward
+        assert z.op is not None
+        x_grad, y_grad = z.op.backward(np.array(upstream_grad))
+        assert np.allclose(x_grad, np.array(exp_x_grad))
+        assert np.allclose(y_grad, np.array(exp_y_grad))
+
+    def test_mul_tensor_and_non_tensor(self) -> None:
+        x = Tensor([1.0, 2.0])
+        y = 3.0
+        z = x * y
+
+        assert np.allclose(z.data, np.array([3.0, 6.0]))
+
+    def test_mul_non_tensor_and_tensor(self) -> None:
+        y = Tensor([1.0, 2.0])
+        x = 3.0
+        z = x * y
+
+        assert np.allclose(z.data, np.array([3.0, 6.0]))

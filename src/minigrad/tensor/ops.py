@@ -3,18 +3,17 @@
 import abc
 from collections.abc import Sequence
 import enum
-from typing import cast
-
-from numpy.typing import NDArray
 
 from minigrad.tensor import Tensor
-from minigrad.tensor._types import NumericArray
+from minigrad.tensor._types import NestedNumSequence
+from minigrad.tensor._types import NumArray
 
 
 class OpType(enum.StrEnum):
     """Operation types."""
 
     ADD = enum.auto()
+    MULTIPLY = enum.auto()
     UNDEFINED = enum.auto()
 
 
@@ -36,14 +35,14 @@ class Op(abc.ABC):
             "All inputs must be Tensor instances."
         )
         self._parents: Sequence[Tensor] = inputs
-        self._saved_values: list[NDArray] = []
+        self._saved_values: list[NumArray] = []
 
     @property
     def parents(self) -> Sequence[Tensor]:
         return self._parents
 
     @property
-    def saved_values(self) -> list[NDArray]:
+    def saved_values(self) -> list[NumArray]:
         return self._saved_values
 
     def save_for_backward(self, *values) -> None:
@@ -51,15 +50,15 @@ class Op(abc.ABC):
         self._saved_values.extend(values)
 
     @abc.abstractmethod
-    def forward(self, *args, **kwargs) -> NDArray:
+    def forward(self, *args, **kwargs) -> NumArray:
         """Forward pass of the operation."""
 
     @abc.abstractmethod
-    def backward(self, *args, **kwargs) -> NDArray | tuple[NDArray, ...]:
+    def backward(self, *args, **kwargs) -> NumArray | tuple[NumArray, ...]:
         """Backward pass of the operation."""
 
 
-def unbroadcast(grad: NumericArray, target_shape: tuple[int, ...]) -> NumericArray:
+def unbroadcast(grad: NumArray, target_shape: tuple[int, ...]) -> NumArray:
     """Sum out broadcasted dimensions of `grad` to match `target_shape`.
 
     Args:
@@ -96,11 +95,11 @@ class Add(Op):
 
     op_type = OpType.ADD
 
-    def forward(self, x: NumericArray, y: NumericArray) -> NumericArray:
+    def forward(self, x: NumArray, y: NumArray) -> NumArray:
         self.save_for_backward(x, y)
-        return cast(NumericArray, x + y)
+        return x + y
 
-    def backward(self, grad_output: NumericArray) -> tuple[NumericArray, NumericArray]:
+    def backward(self, grad_output: NumArray) -> tuple[NumArray, NumArray]:
         x, y = self.saved_values
         return (
             unbroadcast(grad_output, x.shape),
@@ -108,14 +107,39 @@ class Add(Op):
         )
 
 
-def _coerce_to_tensor(value: int | float | NumericArray | Tensor) -> Tensor:
+class Multiply(Op):
+    """Tensor Hadamard product operation."""
+
+    op_type = OpType.MULTIPLY
+
+    def forward(self, x: NumArray, y: NumArray) -> NumArray:
+        self.save_for_backward(x, y)
+        return x * y
+
+    def backward(self, grad_output: NumArray) -> tuple[NumArray, NumArray]:
+        x, y = self.saved_values
+        return (
+            unbroadcast(grad_output * y, x.shape),
+            unbroadcast(grad_output * x, y.shape),
+        )
+
+
+# TODO: implement MatMul
+# TODO: implement Negate
+# TODO: implement Power
+# TODO: implement Tanh
+
+
+def _coerce_to_tensor(value: NestedNumSequence | NumArray | Tensor) -> Tensor:
     if isinstance(value, Tensor):
         return value
 
     return Tensor(value)
 
 
-def _add_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) -> Tensor:
+def _add_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
     """Dispatches addition operation."""
     other = _coerce_to_tensor(other)
     op = Add(self, other)
@@ -127,12 +151,39 @@ def _add_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) ->
 
 
 def _radd_dispatcher(
-    self: Tensor, other: int | float | NumericArray | Tensor
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
 ) -> Tensor:
     other = _coerce_to_tensor(other)
     return other + self
 
 
+def _mul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    """Dispatches addition operation."""
+    other = _coerce_to_tensor(other)
+    op = Multiply(self, other)
+    return Tensor(
+        op.forward(self.data, other.data),
+        op=op,
+        requires_grad=self.requires_grad or other.requires_grad,
+    )
+
+
+def _rmul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    other = _coerce_to_tensor(other)
+    return other * self
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
-# TODO: implement __iadd__
+Tensor.__mul__ = _mul_dispatcher
+Tensor.__rmul__ = _rmul_dispatcher
+# TODO: implement __neg__
+# TODO: implement __matmul__
+# TODO: implement __rmatmul__
+# TODO: implement __sub__
+# TODO: implement __rsub__
+# TODO: implement __pow__
