@@ -15,6 +15,7 @@ class OpType(enum.StrEnum):
     ADD = enum.auto()
     MULTIPLY = enum.auto()
     UNDEFINED = enum.auto()
+    MATMUL = enum.auto()
 
 
 class Op(abc.ABC):
@@ -124,7 +125,27 @@ class Multiply(Op):
         )
 
 
-# TODO: implement MatMul
+class MatMul(Op):
+    """Tensor matrix multiplication operation."""
+
+    op_type = OpType.MATMUL
+
+    def forward(self, x: NumArray, y: NumArray) -> NumArray:
+        self.save_for_backward(x, y)
+        return x @ y
+
+    def backward(self, grad_output: NumArray) -> tuple[NumArray, NumArray]:
+        x, y = self.saved_values
+        # Use .swapaxes instead of .T for >2 dimensions as the latter reverses all
+        # axes.
+        # e.g. transpose of tensor with shape (batch, M, N) should result in
+        # (batch, N, M)
+        return (
+            unbroadcast(grad_output @ y.swapaxes(-1, -2), x.shape),
+            unbroadcast(x.swapaxes(-1, -2) @ grad_output, y.shape),
+        )
+
+
 # TODO: implement Negate
 # TODO: implement Power
 # TODO: implement Tanh
@@ -177,13 +198,33 @@ def _rmul_dispatcher(
     return other * self
 
 
+def _matmul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    """Dispatches addition operation."""
+    other = _coerce_to_tensor(other)
+    op = MatMul(self, other)
+    return Tensor(
+        op.forward(self.data, other.data),
+        op=op,
+        requires_grad=self.requires_grad or other.requires_grad,
+    )
+
+
+def _rmatmul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    other = _coerce_to_tensor(other)
+    return other @ self
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
 Tensor.__mul__ = _mul_dispatcher
 Tensor.__rmul__ = _rmul_dispatcher
 # TODO: implement __neg__
-# TODO: implement __matmul__
-# TODO: implement __rmatmul__
+Tensor.__matmul__ = _matmul_dispatcher
+Tensor.__rmatmul__ = _rmatmul_dispatcher
 # TODO: implement __sub__
 # TODO: implement __rsub__
 # TODO: implement __pow__

@@ -278,3 +278,113 @@ class TestMultiply:
         z = x * y
 
         assert np.allclose(z.data, np.array([3.0, 6.0]))
+
+
+class TestMatMul:
+    @pytest.mark.parametrize(
+        "x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad",
+        [
+            pytest.param(
+                [[1.0, 2.0]],
+                [[3.0], [4.0]],
+                [[11.0]],
+                [[1.0]],
+                [[3.0, 4.0]],
+                [[1.0], [2.0]],
+                id="col_and_row_tensors",
+            ),
+            pytest.param(
+                [
+                    [1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0],
+                ],
+                [
+                    [7.0, 8.0],
+                    [9.0, 10.0],
+                    [11.0, 12.0],
+                ],
+                [
+                    [58.0, 64.0],
+                    [139.0, 154.0],
+                ],
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ],
+                [
+                    [23.0, 29.0, 35.0],
+                    [53.0, 67.0, 81.0],
+                ],
+                [
+                    [13.0, 18.0],
+                    [17.0, 24.0],
+                    [21.0, 30.0],
+                ],
+                id="matrix_matrix",
+            ),
+            pytest.param(
+                [
+                    [
+                        [1.0, 2.0],
+                        [3.0, 4.0],
+                    ],
+                    [
+                        [5.0, 6.0],
+                        [7.0, 8.0],
+                    ],
+                ],
+                [
+                    [1.0],
+                    [2.0],
+                ],
+                [
+                    [[5.0], [11.0]],
+                    [[17.0], [23.0]],
+                ],
+                [
+                    [[1.0], [1.0]],
+                    [[1.0], [1.0]],
+                ],
+                [
+                    [[1.0, 2.0], [1.0, 2.0]],
+                    [[1.0, 2.0], [1.0, 2.0]],
+                ],
+                [
+                    [16.0],
+                    [20.0],
+                ],
+                id="batch_matmul_requires_unbroadcast",
+            ),
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad
+    ) -> None:
+        x = Tensor(x_data)
+        y = Tensor(y_data)
+
+        # forward pass
+        z = x @ y
+
+        assert np.allclose(z.data, np.array(exp_forward))
+
+        # backward pass
+        assert z.op is not None
+        x_grad, y_grad = z.op.backward(np.array(upstream_grad))
+
+        assert np.allclose(x_grad, exp_x_grad)
+        assert np.allclose(y_grad, exp_y_grad)
+
+    def test_matmul_tensor_and_non_tensor(self) -> None:
+        x = Tensor([[1.0, 2.0]])
+        y = [[3.0], [4.0]]
+        z = x @ y
+
+        assert np.allclose(z.data, np.array([[11.0]]))
+
+    def test_matmul_non_tensor_and_tensor(self) -> None:
+        x = [[1.0, 2.0]]
+        y = Tensor([[3.0], [4.0]])
+        z = x @ y
+
+        assert np.allclose(z.data, np.array([[11.0]]))
