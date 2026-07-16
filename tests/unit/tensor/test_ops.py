@@ -1,20 +1,20 @@
 """Tests for `tensor/ops.py`."""
 
 import numpy as np
-from numpy.typing import NDArray
 import pytest
 
 from minigrad.tensor import ops
 from minigrad.tensor import Tensor
+from minigrad.tensor._types import NumArray
 
 
 class SimpleOp(ops.Op):
     op_type = ops.Add
 
-    def forward(self, array: NDArray) -> NDArray:
+    def forward(self, array: NumArray) -> NumArray:
         return array
 
-    def backward(self, array: NDArray) -> NDArray:
+    def backward(self, array: NumArray) -> NumArray:
         return array
 
 
