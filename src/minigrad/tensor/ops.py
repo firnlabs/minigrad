@@ -211,13 +211,20 @@ def _matmul_dispatcher(
     )
 
 
+def _rmatmul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    other = _coerce_to_tensor(other)
+    return other @ self
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
 Tensor.__mul__ = _mul_dispatcher
 Tensor.__rmul__ = _rmul_dispatcher
 # TODO: implement __neg__
 Tensor.__matmul__ = _matmul_dispatcher
-# TODO: implement __rmatmul__
+Tensor.__rmatmul__ = _rmatmul_dispatcher
 # TODO: implement __sub__
 # TODO: implement __rsub__
 # TODO: implement __pow__

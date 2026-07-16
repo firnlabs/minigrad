@@ -49,3 +49,7 @@ class Tensor:
     @property
     def requires_grad(self) -> bool:
         return self._requires_grad
+
+    def backward(self) -> None:
+        # TODO: implement backward pass
+        raise NotImplementedError

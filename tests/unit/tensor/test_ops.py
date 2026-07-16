@@ -374,3 +374,17 @@ class TestMatMul:
 
         assert np.allclose(x_grad, exp_x_grad)
         assert np.allclose(y_grad, exp_y_grad)
+
+    def test_matmul_tensor_and_non_tensor(self) -> None:
+        x = Tensor([[1.0, 2.0]])
+        y = [[3.0], [4.0]]
+        z = x @ y
+
+        assert np.allclose(z.data, np.array([[11.0]]))
+
+    def test_matmul_non_tensor_and_tensor(self) -> None:
+        x = [[1.0, 2.0]]
+        y = Tensor([[3.0], [4.0]])
+        z = x @ y
+
+        assert np.allclose(z.data, np.array([[11.0]]))
