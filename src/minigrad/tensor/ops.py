@@ -137,8 +137,8 @@ class MatMul(Op):
     def backward(self, grad_output: NumArray) -> tuple[NumArray, NumArray]:
         x, y = self.saved_values
         return (
-            unbroadcast(grad_output @ y.T, x.shape),
-            unbroadcast(x.T @ grad_output, y.shape),
+            grad_output @ y.T,
+            x.T @ grad_output,
         )
 
 

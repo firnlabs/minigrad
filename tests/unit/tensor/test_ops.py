@@ -281,8 +281,6 @@ class TestMultiply:
 
 
 class TestMatMul:
-    """Tests for MatMul class."""
-
     @pytest.mark.parametrize(
         "x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad",
         [
@@ -294,6 +292,15 @@ class TestMatMul:
                 [[3.0, 4.0]],
                 [[1.0], [2.0]],
                 id="col_and_row_tensors",
+            ),
+            pytest.param(
+                [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+                [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
+                [[58.0, 64.0], [139.0, 154.0]],
+                [[1.0, 2.0], [3.0, 4.0]],
+                [[23.0, 29.0, 35.0], [53.0, 67.0, 81.0]],
+                [[13.0, 18.0], [17.0, 24.0], [21.0, 30.0]],
+                id="matrix_matrix",
             ),
         ],
     )
