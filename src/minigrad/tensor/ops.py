@@ -136,9 +136,13 @@ class MatMul(Op):
 
     def backward(self, grad_output: NumArray) -> tuple[NumArray, NumArray]:
         x, y = self.saved_values
+        # Use .swapaxes instead of .T for >2 dimensions as the latter reverses all
+        # axes.
+        # e.g. transpose of tensor with shape (batch, M, N) should result in
+        # (batch, N, M)
         return (
-            grad_output @ y.T,
-            x.T @ grad_output,
+            unbroadcast(grad_output @ y.swapaxes(-1, -2), x.shape),
+            unbroadcast(x.swapaxes(-1, -2) @ grad_output, y.shape),
         )
 
 
