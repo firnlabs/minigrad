@@ -112,55 +112,135 @@ class TestAdd:
 class TestMultiply:
     """Tests for Multiply class."""
 
-    def test_forward_backward_no_broadcast(self) -> None:
-        x = Tensor(
-            [
+    @pytest.mark.parametrize(
+        "x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad",
+        [
+            pytest.param(
                 [1.0, 2.0],
                 [3.0, 4.0],
-            ]
-        )
-        y = Tensor(
-            [
-                [2.0, 3.0],
-                [4.0, 5.0],
-            ]
-        )
-
-        # forward pass
-        z = x * y
-
-        exp_data = np.array(
-            [
-                [2.0, 6.0],
-                [12.0, 20.0],
-            ]
-        )
-        assert np.allclose(z.data, exp_data)
-
-        # backward pass
-        grad_output = np.array(
-            [
+                [3.0, 8.0],
                 [2.0, 2.0],
-                [2.0, 2.0],
-            ]
-        )
-        assert z.op is not None
-        x_grad, y_grad = z.op.backward(grad_output)
-
-        exp_x_grad = np.array(
-            [
-                [4.0, 6.0],
-                [8.0, 10.0],
-            ]
-        )
-        exp_y_grad = np.array(
-            [
-                [2.0, 4.0],
                 [6.0, 8.0],
-            ]
-        )
-        assert np.allclose(x_grad, exp_x_grad)
-        assert np.allclose(y_grad, exp_y_grad)
+                [2.0, 4.0],
+                id="1d_same_shapes",
+            ),
+            pytest.param(
+                [1.0, 2.0, 3.0],
+                [2.0],
+                [2.0, 4.0, 6.0],
+                [1.0, 2.0, 3.0],
+                [2.0, 4.0, 6.0],
+                [14.0],
+                id="1d_diff_shapes",
+            ),
+            pytest.param(
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ],
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ],
+                [
+                    [2.0, 6.0],
+                    [12.0, 20.0],
+                ],
+                [
+                    [2.0, 2.0],
+                    [2.0, 2.0],
+                ],
+                [
+                    [4.0, 6.0],
+                    [8.0, 10.0],
+                ],
+                [
+                    [2.0, 4.0],
+                    [6.0, 8.0],
+                ],
+                id="2d_same_shapes",
+            ),
+            pytest.param(
+                [
+                    [1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0],
+                ],
+                [1.0, 2.0, 3.0],
+                [[1.0, 4.0, 9.0], [4.0, 10.0, 18.0]],
+                [
+                    [1.0, 1.0, 1.0],
+                    [1.0, 1.0, 1.0],
+                ],
+                [
+                    [1.0, 2.0, 3.0],
+                    [1.0, 2.0, 3.0],
+                ],
+                [5.0, 7.0, 9.0],
+                id="2d_1d_broadcasting",
+            ),
+            pytest.param(
+                [
+                    [1.0],
+                    [2.0],
+                ],
+                [
+                    [3.0, 4.0],
+                ],
+                [
+                    [3.0, 4.0],
+                    [6.0, 8.0],
+                ],
+                [
+                    [1.0, 1.0],
+                    [1.0, 1.0],
+                ],
+                [
+                    [7.0],
+                    [7.0],
+                ],
+                [
+                    [3.0, 3.0],
+                ],
+                id="2d_2d_broadcasting_different_input_shapes",
+            ),
+            pytest.param(
+                [
+                    [[1.0, 2.0]],
+                    [[3.0, 4.0]],
+                ],
+                [2.0, 3.0],
+                [
+                    [[2.0, 6.0]],
+                    [[6.0, 12.0]],
+                ],
+                [
+                    [[1.0, 1.0]],
+                    [[1.0, 1.0]],
+                ],
+                [
+                    [[2.0, 3.0]],
+                    [[2.0, 3.0]],
+                ],
+                [4.0, 6.0],
+                id="3d_1d_broadcasting",
+            ),
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad
+    ) -> None:
+        x = Tensor(x_data)
+        y = Tensor(y_data)
+
+        # forward
+        z = x * y
+        assert np.allclose(z.data, np.array(exp_forward))
+
+        # backward
+        assert z.op is not None
+        x_grad, y_grad = z.op.backward(np.array(upstream_grad))
+        assert np.allclose(x_grad, np.array(exp_x_grad))
+        assert np.allclose(y_grad, np.array(exp_y_grad))
 
 
 @pytest.mark.parametrize(
