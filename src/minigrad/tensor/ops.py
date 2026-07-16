@@ -170,11 +170,17 @@ def _mul_dispatcher(
     )
 
 
+def _rmul_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    other = _coerce_to_tensor(other)
+    return other * self
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
-# TODO: implement __iadd__
 Tensor.__mul__ = _mul_dispatcher
-# TODO: implement _rmul_
+Tensor.__rmul__ = _rmul_dispatcher
 # TODO: implement __neg__
 # TODO: implement __matmul__
 # TODO: implement __rmatmul__
