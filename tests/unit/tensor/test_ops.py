@@ -114,20 +114,16 @@ class TestMultiply:
 
     def test_forward_backward_no_broadcast(self) -> None:
         x = Tensor(
-            np.array(
-                [
-                    [1.0, 2.0],
-                    [3.0, 4.0],
-                ]
-            )
+            [
+                [1.0, 2.0],
+                [3.0, 4.0],
+            ]
         )
         y = Tensor(
-            np.array(
-                [
-                    [2.0, 3.0],
-                    [4.0, 5.0],
-                ]
-            )
+            [
+                [2.0, 3.0],
+                [4.0, 5.0],
+            ]
         )
 
         # forward pass

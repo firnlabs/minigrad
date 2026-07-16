@@ -8,6 +8,7 @@ from typing import cast
 from numpy.typing import NDArray
 
 from minigrad.tensor import Tensor
+from minigrad.tensor._types import NestedSequence
 from minigrad.tensor._types import NumericArray
 
 
@@ -132,14 +133,16 @@ class Multiply(Op):
 # TODO: implement Tanh
 
 
-def _coerce_to_tensor(value: int | float | NumericArray | Tensor) -> Tensor:
+def _coerce_to_tensor(value: NestedSequence | NumericArray | Tensor) -> Tensor:
     if isinstance(value, Tensor):
         return value
 
     return Tensor(value)
 
 
-def _add_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) -> Tensor:
+def _add_dispatcher(
+    self: Tensor, other: NestedSequence | NumericArray | Tensor
+) -> Tensor:
     """Dispatches addition operation."""
     other = _coerce_to_tensor(other)
     op = Add(self, other)
@@ -151,13 +154,15 @@ def _add_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) ->
 
 
 def _radd_dispatcher(
-    self: Tensor, other: int | float | NumericArray | Tensor
+    self: Tensor, other: NestedSequence | NumericArray | Tensor
 ) -> Tensor:
     other = _coerce_to_tensor(other)
     return other + self
 
 
-def _mul_dispatcher(self: Tensor, other: int | float | NumericArray | Tensor) -> Tensor:
+def _mul_dispatcher(
+    self: Tensor, other: NestedSequence | NumericArray | Tensor
+) -> Tensor:
     """Dispatches addition operation."""
     other = _coerce_to_tensor(other)
     op = Multiply(self, other)
