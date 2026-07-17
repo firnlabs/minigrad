@@ -530,3 +530,33 @@ class TestPower:
         assert z.op is not None
         x_grad = z.op.backward(np.array(upstream_grad))
         assert np.allclose(x_grad, np.array(exp_x_grad))
+
+
+class TestTanh:
+    """Tests for Tanh class."""
+
+    @pytest.mark.parametrize(
+        "x_data, upstream_grad",
+        [
+            pytest.param(
+                [1.0, 2.0, 3.0],
+                [2.0, 2.0, 2.0],
+                id="1d_tensor",
+            ),
+        ],
+    )
+    def test_forward_backward(self, x_data, upstream_grad) -> None:
+        x = Tensor(x_data)
+
+        # forward pass
+        z = ops.tanh(x)
+
+        exp_data = np.tanh(x_data)
+        assert np.allclose(z.data, exp_data)
+
+        upstream_grad = np.array(upstream_grad)
+        assert z.op is not None
+        x_grad = z.op.backward(upstream_grad)
+
+        exp_x_grad = upstream_grad * (1 - np.tanh(x_data) ** 2)
+        assert np.allclose(x_grad, exp_x_grad)
