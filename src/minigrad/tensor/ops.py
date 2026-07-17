@@ -148,7 +148,7 @@ class MatMul(Op):
 
 
 class Negate(Op):
-    """Tensor Hadamard product operation."""
+    """Tensor negate operation."""
 
     op_type = OpType.NEGATE
 
