@@ -582,3 +582,155 @@ class TestTanh:
 
         exp_x_grad = upstream_grad * (1 - np.tanh(x_data) ** 2)
         assert np.allclose(x_grad, exp_x_grad)
+
+
+class TestSubtract:
+    """Tests for Subtract class."""
+
+    @pytest.mark.parametrize(
+        "x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad",
+        [
+            pytest.param(
+                [1.0, 2.0, 3.0],
+                [2.0, 3.0, 4.0],
+                [-1.0, -1.0, -1.0],
+                [2.0, 2.0, 2.0],
+                [2.0, 2.0, 2.0],
+                [-2.0, -2.0, -2.0],
+                id="1d_tensors",
+            ),
+            pytest.param(
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ],
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ],
+                [
+                    [1.0, 1.0],
+                    [1.0, 1.0],
+                ],
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ],
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ],
+                [
+                    [-2.0, -3.0],
+                    [-4.0, -5.0],
+                ],
+                id="2d_same_shapes",
+            ),
+            pytest.param(
+                [
+                    [2.0, 4.0, 6.0],
+                    [8.0, 10.0, 12.0],
+                ],
+                [[1.0, 2.0, 3.0]],
+                [
+                    [1.0, 2.0, 3.0],
+                    [7.0, 8.0, 9.0],
+                ],
+                [
+                    [1.0, 1.0, 1.0],
+                    [1.0, 1.0, 1.0],
+                ],
+                [
+                    [1.0, 1.0, 1.0],
+                    [1.0, 1.0, 1.0],
+                ],
+                [[-2.0, -2.0, -2.0]],
+                id="2d_broadcasting",
+            ),
+            pytest.param(
+                [
+                    [[1.0, 2.0], [3.0, 4.0]],
+                    [[5.0, 6.0], [7.0, 8.0]],
+                ],
+                [
+                    [[0.0, 1.0], [2.0, 3.0]],
+                    [[4.0, 5.0], [6.0, 7.0]],
+                ],
+                [
+                    [[1.0, 1.0], [1.0, 1.0]],
+                    [[1.0, 1.0], [1.0, 1.0]],
+                ],
+                [
+                    [[1.0, 2.0], [3.0, 4.0]],
+                    [[5.0, 6.0], [7.0, 8.0]],
+                ],
+                [
+                    [[1.0, 2.0], [3.0, 4.0]],
+                    [[5.0, 6.0], [7.0, 8.0]],
+                ],
+                [
+                    [[-1.0, -2.0], [-3.0, -4.0]],
+                    [[-5.0, -6.0], [-7.0, -8.0]],
+                ],
+                id="3d_same_shapes",
+            ),
+            pytest.param(
+                [
+                    [[1.0, 2.0], [3.0, 4.0]],
+                    [[5.0, 6.0], [7.0, 8.0]],
+                ],
+                [[[1.0], [2.0]]],
+                [
+                    [[0.0, 1.0], [1.0, 2.0]],
+                    [[4.0, 5.0], [5.0, 6.0]],
+                ],
+                [
+                    [[1.0, 1.0], [1.0, 1.0]],
+                    [[1.0, 1.0], [1.0, 1.0]],
+                ],
+                [
+                    [[1.0, 1.0], [1.0, 1.0]],
+                    [[1.0, 1.0], [1.0, 1.0]],
+                ],
+                [[[-4.0], [-4.0]]],
+                id="3d_broadcasting",
+            ),
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad
+    ) -> None:
+        x = Tensor(x_data)
+        y = Tensor(y_data)
+
+        # forward pass
+        z = x - y
+
+        assert np.allclose(z.data, np.array(exp_forward))
+
+        # backward pass
+        assert z.op is not None
+        # y_grad is not returned here since subtraction is x + (-y)
+        x_grad, neg_y_grad = z.op.backward(np.array(upstream_grad))
+
+        assert np.allclose(x_grad, np.array(exp_x_grad))
+
+        # compute y_grad from x + (-y)
+        neg_y = z.op.parents[1]
+        assert neg_y.op is not None
+        y_grad = neg_y.op.backward(neg_y_grad)
+        assert np.allclose(y_grad, exp_y_grad)
+
+    def test_subtract_tensor_and_non_tensor(self) -> None:
+        x = Tensor([1.0, 2.0])
+        y = 3.0
+        z = x - y
+
+        assert np.allclose(z.data, np.array([-2.0, -1.0]))
+
+    def test_subtract_non_tensor_and_tensor(self) -> None:
+        y = Tensor([1.0, 2.0])
+        x = 3.0
+        z = x - y
+
+        assert np.allclose(z.data, np.array([2.0, 1.0]))
