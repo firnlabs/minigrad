@@ -720,3 +720,17 @@ class TestSubtract:
         assert neg_y.op is not None
         y_grad = neg_y.op.backward(neg_y_grad)
         assert np.allclose(y_grad, exp_y_grad)
+
+    def test_subtract_tensor_and_non_tensor(self) -> None:
+        x = Tensor([1.0, 2.0])
+        y = 3.0
+        z = x - y
+
+        assert np.allclose(z.data, np.array([-2.0, -1.0]))
+
+    def test_subtract_non_tensor_and_tensor(self) -> None:
+        y = Tensor([1.0, 2.0])
+        x = 3.0
+        z = x - y
+
+        assert np.allclose(z.data, np.array([2.0, 1.0]))

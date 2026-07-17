@@ -280,6 +280,13 @@ def _sub_dispatcher(
     return self + (-other)
 
 
+def _rsub_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    other = _coerce_to_tensor(other)
+    return other - self
+
+
 def tanh(x: Tensor) -> Tensor:
     op = Tanh(x)
     return Tensor(op.forward(x.data), op=op, requires_grad=x.requires_grad)
@@ -294,4 +301,4 @@ Tensor.__matmul__ = _matmul_dispatcher
 Tensor.__rmatmul__ = _rmatmul_dispatcher
 Tensor.__pow__ = _pow_dispatcher
 Tensor.__sub__ = _sub_dispatcher
-# TODO: implement __rsub__
+Tensor.__rsub__ = _rsub_dispatcher
