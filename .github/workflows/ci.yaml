@@ -30,6 +30,11 @@ jobs:
 
       - name: Run static code analysis (pre-commit)
         uses: pre-commit/action@v3.0.1
+        env:
+          # The no-commit-to-branch hook is designed to prevent direct commits to
+          # protected branches locally. However, when run in GitHub Actions on the
+          # main branch, it flags the CI checkout as an invalid direct commit.
+          SKIP: no-commit-to-branch
 
       - name: Run tests with coverage
         run: uv run pytest tests/ --cov=src --cov-report=term-missing --cov-report=json
