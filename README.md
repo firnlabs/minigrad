@@ -73,6 +73,7 @@ minigrad/
 Minigrad uses [uv](https://github.com/astral-sh/uv) for lightning-fast package management and dependency resolution.
 
 ### Install for development
+
 To clone the repository and install dependencies in an isolated virtual environment:
 
 ```bash
@@ -146,6 +147,7 @@ For a complete, interactive walkthrough of building and training a neural networ
 ## Development and contributing
 
 ### Environment setup
+
 Make sure you have `uv` installed (`pip install uv` or `brew install uv`).
 Activate your virtual environment and install dependencies:
 
@@ -155,14 +157,17 @@ source .venv/bin/activate
 ```
 
 ### Running tests
+
 The project features test coverage target configurations, checking integration, units, and verifying correctness. To run tests with pytest:
 
 ```bash
 pytest
 ```
+
 *Note: Configured options in `pyproject.toml` will automatically print missing lines and generate an HTML report inside `htmlcov/`.*
 
 ### Linting and formatting
+
 Minigrad adheres to strict Google-style documentation standards and PEP8 coding guidelines. Use the following commands to check and format your code:
 
 ```bash
@@ -178,6 +183,7 @@ pydoclint src/
 ```
 
 Before committing, it is highly recommended to run pre-commit hooks:
+
 ```bash
 pre-commit run --all-files
 ```
