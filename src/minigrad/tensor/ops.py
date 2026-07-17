@@ -16,6 +16,7 @@ class OpType(enum.StrEnum):
     MULTIPLY = enum.auto()
     MATMUL = enum.auto()
     NEGATE = enum.auto()
+    POWER = enum.auto()
     UNDEFINED = enum.auto()
 
 
@@ -161,7 +162,20 @@ class Negate(Op):
         return unbroadcast(-grad_output, x.shape)
 
 
-# TODO: implement Power
+class Power(Op):
+    """Tensor power operation."""
+
+    op_type = OpType.POWER
+
+    def forward(self, x: NumArray, c: int | float) -> NumArray:
+        self.save_for_backward(x, c)
+        return x**c
+
+    def backward(self, grad_output: NumArray) -> NumArray:
+        x, c = self.saved_values
+        return unbroadcast(grad_output * c * x ** (c - 1), x.shape)
+
+
 # TODO: implement Tanh
 
 
@@ -237,6 +251,13 @@ def _neg_dispatcher(self: Tensor) -> Tensor:
     return Tensor(op.forward(self.data), op=op, requires_grad=self.requires_grad)
 
 
+def _pow_dispatcher(self: Tensor, exponent: int | float) -> Tensor:
+    op = Power(self)
+    return Tensor(
+        op.forward(self.data, exponent), op=op, requires_grad=self.requires_grad
+    )
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
 Tensor.__mul__ = _mul_dispatcher
@@ -244,6 +265,6 @@ Tensor.__rmul__ = _rmul_dispatcher
 Tensor.__neg__ = _neg_dispatcher
 Tensor.__matmul__ = _matmul_dispatcher
 Tensor.__rmatmul__ = _rmatmul_dispatcher
+Tensor.__pow__ = _pow_dispatcher
 # TODO: implement __sub__
 # TODO: implement __rsub__
-# TODO: implement __pow__
