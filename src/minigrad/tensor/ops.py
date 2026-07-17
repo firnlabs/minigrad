@@ -272,6 +272,14 @@ def _pow_dispatcher(self: Tensor, exponent: int | float) -> Tensor:
     )
 
 
+def _sub_dispatcher(
+    self: Tensor, other: NestedNumSequence | NumArray | Tensor
+) -> Tensor:
+    """Dispatches addition operation."""
+    other = _coerce_to_tensor(other)
+    return self + (-other)
+
+
 def tanh(x: Tensor) -> Tensor:
     op = Tanh(x)
     return Tensor(op.forward(x.data), op=op, requires_grad=x.requires_grad)
@@ -285,5 +293,5 @@ Tensor.__neg__ = _neg_dispatcher
 Tensor.__matmul__ = _matmul_dispatcher
 Tensor.__rmatmul__ = _rmatmul_dispatcher
 Tensor.__pow__ = _pow_dispatcher
-# TODO: implement __sub__
+Tensor.__sub__ = _sub_dispatcher
 # TODO: implement __rsub__

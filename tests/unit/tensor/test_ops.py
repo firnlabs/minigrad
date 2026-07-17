@@ -582,3 +582,45 @@ class TestTanh:
 
         exp_x_grad = upstream_grad * (1 - np.tanh(x_data) ** 2)
         assert np.allclose(x_grad, exp_x_grad)
+
+
+class TestSubtract:
+    """Tests for Subtract class."""
+
+    @pytest.mark.parametrize(
+        "x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad",
+        [
+            pytest.param(
+                [1.0, 2.0, 3.0],
+                [2.0, 3.0, 4.0],
+                [-1.0, -1.0, -1.0],
+                [2.0, 2.0, 2.0],
+                [2.0, 2.0, 2.0],
+                [-2.0, -2.0, -2.0],
+                id="1d_tensors",
+            )
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, y_data, exp_forward, upstream_grad, exp_x_grad, exp_y_grad
+    ) -> None:
+        x = Tensor(x_data)
+        y = Tensor(y_data)
+
+        # forward pass
+        z = x - y
+
+        assert np.allclose(z.data, np.array(exp_forward))
+
+        # backward pass
+        assert z.op is not None
+        # y_grad is not returned here since subtraction is x + (-y)
+        x_grad, neg_y_grad = z.op.backward(np.array(upstream_grad))
+
+        assert np.allclose(x_grad, np.array(exp_x_grad))
+
+        # compute y_grad from x + (-y)
+        neg_y = z.op.parents[1]
+        assert neg_y.op is not None
+        y_grad = neg_y.op.backward(neg_y_grad)
+        assert np.allclose(y_grad, exp_y_grad)
