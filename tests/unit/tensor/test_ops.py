@@ -543,6 +543,28 @@ class TestTanh:
                 [2.0, 2.0, 2.0],
                 id="1d_tensor",
             ),
+            pytest.param(
+                [
+                    [1.0, 2.0],
+                    [-1.0, -2.0],
+                ],
+                [
+                    [0.5, 1.5],
+                    [2.5, 3.5],
+                ],
+                id="2d_tensor",
+            ),
+            pytest.param(
+                [
+                    [[1.0, -1.0], [2.0, -2.0]],
+                    [[3.0, -3.0], [4.0, -4.0]],
+                ],
+                [
+                    [[0.5, 0.5], [1.0, 1.0]],
+                    [[1.5, 1.5], [2.0, 2.0]],
+                ],
+                id="3d_tensor",
+            ),
         ],
     )
     def test_forward_backward(self, x_data, upstream_grad) -> None:
