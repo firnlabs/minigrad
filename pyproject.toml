@@ -7,7 +7,9 @@ authors = [
     { name = "Carlos Ezequiel", email = "cafezequiel@gmail.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "numpy>=2.4.6",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.26,<0.12.0"]

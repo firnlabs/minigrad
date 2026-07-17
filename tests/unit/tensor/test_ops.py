@@ -461,3 +461,32 @@ class TestNegate:
         assert z.op is not None
         x_grad = z.op.backward(np.array(upstream_grad))
         assert np.allclose(x_grad, np.array(exp_x_grad))
+
+
+class TestPower:
+    """Tests for Power class."""
+
+    @pytest.mark.parametrize(
+        "x_data, exponent, exp_forward, upstream_grad, exp_x_grad",
+        [
+            pytest.param(
+                [1.0, 2.0, 3.0],
+                2,
+                [1.0, 4.0, 9.0],
+                [2.0, 2.0, 2.0],
+                [4.0, 8.0, 12.0],
+                id="1d_tensor",
+            ),
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, exponent, exp_forward, upstream_grad, exp_x_grad
+    ) -> None:
+        x = Tensor(x_data)
+        z = x**exponent
+
+        assert np.allclose(z.data, np.array(exp_forward))
+
+        assert z.op is not None
+        x_grad = z.op.backward(np.array(upstream_grad))
+        assert np.allclose(x_grad, np.array(exp_x_grad))
