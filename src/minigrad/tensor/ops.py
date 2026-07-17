@@ -4,6 +4,8 @@ import abc
 from collections.abc import Sequence
 import enum
 
+import numpy as np
+
 from minigrad.tensor import Tensor
 from minigrad.tensor._types import NestedNumSequence
 from minigrad.tensor._types import NumArray
@@ -17,6 +19,7 @@ class OpType(enum.StrEnum):
     MATMUL = enum.auto()
     NEGATE = enum.auto()
     POWER = enum.auto()
+    TANH = enum.auto()
     UNDEFINED = enum.auto()
 
 
@@ -176,7 +179,18 @@ class Power(Op):
         return unbroadcast(grad_output * c * x ** (c - 1), x.shape)
 
 
-# TODO: implement Tanh
+class Tanh(Op):
+    """Tensor tanh operation."""
+
+    op_type = OpType.TANH
+
+    def forward(self, x: NumArray) -> NumArray:
+        self.save_for_backward(x)
+        return np.tanh(x)
+
+    def backward(self, grad_output: NumArray) -> NumArray:
+        x = self.saved_values[0]
+        return unbroadcast(grad_output * (1 - np.tanh(x) ** 2), x.shape)
 
 
 def _coerce_to_tensor(value: NestedNumSequence | NumArray | Tensor) -> Tensor:
@@ -256,6 +270,11 @@ def _pow_dispatcher(self: Tensor, exponent: int | float) -> Tensor:
     return Tensor(
         op.forward(self.data, exponent), op=op, requires_grad=self.requires_grad
     )
+
+
+def tanh(x: Tensor) -> Tensor:
+    op = Tanh(x)
+    return Tensor(op.forward(x.data), op=op, requires_grad=x.requires_grad)
 
 
 Tensor.__add__ = _add_dispatcher
