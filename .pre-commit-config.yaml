@@ -18,6 +18,10 @@ repos:
       - id: check-yaml               # Validates syntax for your yaml configuration files
       - id: check-added-large-files  # Prevents accidentally staging gigantic binaries (>500KB)
       - id: no-commit-to-branch      # Prevents direct commits to main/master branches
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
