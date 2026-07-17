@@ -391,19 +391,73 @@ class TestMatMul:
 
 
 class TestNegate:
-    def test_forward_backward(self) -> None:
-        x = Tensor([2.0, 3.0])
+    """Tests for Negate class."""
 
-        # forward pass
+    @pytest.mark.parametrize(
+        "x_data, exp_forward, upstream_grad, exp_x_grad",
+        [
+            pytest.param(
+                5.0,
+                -5.0,
+                2.0,
+                -2.0,
+                id="0d_scalar",
+            ),
+            pytest.param(
+                [2.0, 3.0],
+                [-2.0, -3.0],
+                [1.0, 1.0],
+                [-1.0, -1.0],
+                id="1d_tensor",
+            ),
+            pytest.param(
+                [
+                    [1.0, -2.0],
+                    [-3.0, 4.0],
+                ],
+                [
+                    [-1.0, 2.0],
+                    [3.0, -4.0],
+                ],
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ],
+                [
+                    [-1.0, -2.0],
+                    [-3.0, -4.0],
+                ],
+                id="2d_tensor",
+            ),
+            pytest.param(
+                [
+                    [[1.0], [2.0]],
+                    [[3.0], [4.0]],
+                ],
+                [
+                    [[-1.0], [-2.0]],
+                    [[-3.0], [-4.0]],
+                ],
+                [
+                    [[2.0], [2.0]],
+                    [[2.0], [2.0]],
+                ],
+                [
+                    [[-2.0], [-2.0]],
+                    [[-2.0], [-2.0]],
+                ],
+                id="3d_tensor",
+            ),
+        ],
+    )
+    def test_forward_backward(
+        self, x_data, exp_forward, upstream_grad, exp_x_grad
+    ) -> None:
+        x = Tensor(x_data)
         z = -x
 
-        exp_data = np.array([-2.0, -3.0])
-        assert np.allclose(z.data, exp_data)
+        assert np.allclose(z.data, np.array(exp_forward))
 
-        # backward pass
         assert z.op is not None
-        upstream_grad = np.array([1.0, 1.0])
-        x_grad = z.op.backward(upstream_grad)
-
-        exp_x_grad = np.array([-1.0, -1.0])
-        assert np.allclose(x_grad, exp_x_grad)
+        x_grad = z.op.backward(np.array(upstream_grad))
+        assert np.allclose(x_grad, np.array(exp_x_grad))
