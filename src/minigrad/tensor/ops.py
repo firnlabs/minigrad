@@ -6,9 +6,9 @@ import enum
 
 import numpy as np
 
-from minigrad.tensor import Tensor
 from minigrad.tensor._types import NestedNumSequence
 from minigrad.tensor._types import NumArray
+from minigrad.tensor.engine import Tensor
 
 
 class OpType(enum.StrEnum):
