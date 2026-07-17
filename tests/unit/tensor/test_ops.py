@@ -388,3 +388,22 @@ class TestMatMul:
         z = x @ y
 
         assert np.allclose(z.data, np.array([[11.0]]))
+
+
+class TestNegate:
+    def test_forward_backward(self) -> None:
+        x = Tensor([2.0, 3.0])
+
+        # forward pass
+        z = -x
+
+        exp_data = np.array([-2.0, -3.0])
+        assert np.allclose(z.data, exp_data)
+
+        # backward pass
+        assert z.op is not None
+        upstream_grad = np.array([1.0, 1.0])
+        x_grad = z.op.backward(upstream_grad)
+
+        exp_x_grad = np.array([-1.0, -1.0])
+        assert np.allclose(x_grad, exp_x_grad)

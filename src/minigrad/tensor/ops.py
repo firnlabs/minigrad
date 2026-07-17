@@ -14,8 +14,9 @@ class OpType(enum.StrEnum):
 
     ADD = enum.auto()
     MULTIPLY = enum.auto()
-    UNDEFINED = enum.auto()
     MATMUL = enum.auto()
+    NEGATE = enum.auto()
+    UNDEFINED = enum.auto()
 
 
 class Op(abc.ABC):
@@ -146,7 +147,20 @@ class MatMul(Op):
         )
 
 
-# TODO: implement Negate
+class Negate(Op):
+    """Tensor Hadamard product operation."""
+
+    op_type = OpType.NEGATE
+
+    def forward(self, x: NumArray) -> NumArray:
+        self.save_for_backward(x)
+        return -x
+
+    def backward(self, grad_output: NumArray) -> NumArray:
+        x = self.saved_values[0]
+        return unbroadcast(-grad_output, x.shape)
+
+
 # TODO: implement Power
 # TODO: implement Tanh
 
@@ -218,11 +232,16 @@ def _rmatmul_dispatcher(
     return other @ self
 
 
+def _neg_dispatcher(self: Tensor) -> Tensor:
+    op = Negate(self)
+    return Tensor(op.forward(self.data), op=op, requires_grad=self.requires_grad)
+
+
 Tensor.__add__ = _add_dispatcher
 Tensor.__radd__ = _radd_dispatcher
 Tensor.__mul__ = _mul_dispatcher
 Tensor.__rmul__ = _rmul_dispatcher
-# TODO: implement __neg__
+Tensor.__neg__ = _neg_dispatcher
 Tensor.__matmul__ = _matmul_dispatcher
 Tensor.__rmatmul__ = _rmatmul_dispatcher
 # TODO: implement __sub__
