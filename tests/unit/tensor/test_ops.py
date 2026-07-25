@@ -734,3 +734,18 @@ class TestSubtract:
         z = x - y
 
         assert np.allclose(z.data, np.array([2.0, 1.0]))
+
+
+class TestSum:
+    def test_forward_backward(self):
+        x_data = [1.0, 2.0]
+        x = Tensor(x_data, requires_grad=True)
+
+        z = x.sum()
+        assert np.allclose(z.data, np.sum(x_data))
+
+        assert z.op
+        upstream_grad = 2.0
+        exp_grad = np.array([2.0, 2.0])
+        x_grad = z.op.backward(upstream_grad)
+        assert np.allclose(x_grad, exp_grad)
