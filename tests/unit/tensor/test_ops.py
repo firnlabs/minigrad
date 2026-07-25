@@ -737,15 +737,39 @@ class TestSubtract:
 
 
 class TestSum:
-    def test_forward_backward(self):
-        x_data = [1.0, 2.0]
+    """Tests for Sum class."""
+
+    @pytest.mark.parametrize(
+        "x_data, upstream_grad",
+        [
+            pytest.param(
+                [1.0, 2.0],
+                2.0,
+                id="1d_tensor",
+            ),
+            pytest.param(
+                [
+                    [1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0],
+                ],
+                3.0,
+                id="2d_tensor",
+            ),
+        ],
+    )
+    def test_forward_backward(self, x_data, upstream_grad) -> None:
+        x_data = np.array(x_data)
         x = Tensor(x_data, requires_grad=True)
 
+        # forward pass
         z = x.sum()
-        assert np.allclose(z.data, np.sum(x_data))
 
-        assert z.op
-        upstream_grad = 2.0
-        exp_grad = np.array([2.0, 2.0])
-        x_grad = z.op.backward(upstream_grad)
-        assert np.allclose(x_grad, exp_grad)
+        assert np.allclose(z.data, x_data.sum())
+
+        # backward pass
+        exp_x_grad = np.broadcast_to(upstream_grad, x_data.shape)
+
+        assert z.op is not None
+        x_grad = z.op.backward(np.array(upstream_grad))
+
+        assert np.allclose(x_grad, np.array(exp_x_grad))
