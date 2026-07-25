@@ -20,6 +20,7 @@ class OpType(enum.StrEnum):
     NEGATE = enum.auto()
     POWER = enum.auto()
     TANH = enum.auto()
+    SUM = enum.auto()
     UNDEFINED = enum.auto()
 
 
@@ -193,6 +194,21 @@ class Tanh(Op):
         return unbroadcast(grad_output * (1 - np.tanh(x) ** 2), x.shape)
 
 
+class Sum(Op):
+    """Tensor sum operation."""
+
+    op_type = OpType.SUM
+
+    # TODO: implement sum-along-axis
+    def forward(self, x: NumArray) -> NumArray:
+        self.save_for_backward(x)
+        return np.asarray(np.sum(x))
+
+    def backward(self, grad_output: NumArray) -> NumArray:
+        x = self.saved_values[0]
+        return np.broadcast_to(grad_output, x.shape)
+
+
 def _coerce_to_tensor(value: NestedNumSequence | NumArray | Tensor) -> Tensor:
     if isinstance(value, Tensor):
         return value
@@ -287,9 +303,18 @@ def _rsub_dispatcher(
     return other - self
 
 
+def _sum_dispatcher(self: Tensor) -> Tensor:
+    op = Sum(self)
+    return Tensor(op.forward(self.data), op=op, requires_grad=self.requires_grad)
+
+
 def tanh(x: Tensor) -> Tensor:
     op = Tanh(x)
     return Tensor(op.forward(x.data), op=op, requires_grad=x.requires_grad)
+
+
+def sum(x: Tensor) -> Tensor:
+    return _sum_dispatcher(x)
 
 
 Tensor.__add__ = _add_dispatcher
@@ -302,3 +327,4 @@ Tensor.__rmatmul__ = _rmatmul_dispatcher
 Tensor.__pow__ = _pow_dispatcher
 Tensor.__sub__ = _sub_dispatcher
 Tensor.__rsub__ = _rsub_dispatcher
+Tensor.sum = _sum_dispatcher
