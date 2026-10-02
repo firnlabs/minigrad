@@ -9,7 +9,7 @@
 
 A lightweight, fully type-annotated autograd engine designed for educational purposes. Minigrad demonstrates the mechanics of backpropagation in both scalar-level and tensor-level models.
 
-Think of **Minigrad** as beteween Andrej Karpathy's [`micrograd`](https://github.com/karpathy/micrograd) and George Hotz's [`tinygrad`](https://github.com/tinygrad/tinygrad).
+Think of **Minigrad** as between Andrej Karpathy's [`micrograd`](https://github.com/karpathy/micrograd) and George Hotz's [`tinygrad`](https://github.com/tinygrad/tinygrad).
 
 ---
 

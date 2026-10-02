@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class Tensor:
-    """Represents a tenso with auto-differentiation support."""
+    """Represents a tensor with auto-differentiation support."""
 
     def __init__(
         self,

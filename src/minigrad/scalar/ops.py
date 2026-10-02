@@ -93,11 +93,11 @@ class Multiply(Op):
 class Negate(Op):
     """Negation operation.
 
-    NOTE: While negation cam be implemented using a Multiply (i.e. a * -1),
-    It results in an unnecessary dummy Value created for -1 (i.e. Value(-1.0)).
+    NOTE: While negation can be implemented using a Multiply (i.e. a * -1),
+    it results in an unnecessary dummy Scalar created for -1 (i.e. Scalar(-1.0)).
     Also, Multiply is a binary operator that expects to have two operands,
-    which would result in the creation of two Value objects in the childen of the
-    resulting computed Value.
+    which would result in the creation of two Scalar objects in the children of the
+    resulting computed Scalar.
     """
 
     op_type = OpType.NEGATE
