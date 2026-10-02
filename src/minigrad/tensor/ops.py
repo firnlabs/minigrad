@@ -239,7 +239,7 @@ def _radd_dispatcher(
 def _mul_dispatcher(
     self: Tensor, other: NestedNumSequence | NumArray | Tensor
 ) -> Tensor:
-    """Dispatches addition operation."""
+    """Dispatches multiplication operation."""
     other = _coerce_to_tensor(other)
     op = Multiply(self, other)
     return Tensor(
@@ -259,7 +259,7 @@ def _rmul_dispatcher(
 def _matmul_dispatcher(
     self: Tensor, other: NestedNumSequence | NumArray | Tensor
 ) -> Tensor:
-    """Dispatches addition operation."""
+    """Dispatches matrix multiplication operation."""
     other = _coerce_to_tensor(other)
     op = MatMul(self, other)
     return Tensor(
@@ -291,7 +291,7 @@ def _pow_dispatcher(self: Tensor, exponent: int | float) -> Tensor:
 def _sub_dispatcher(
     self: Tensor, other: NestedNumSequence | NumArray | Tensor
 ) -> Tensor:
-    """Dispatches addition operation."""
+    """Dispatches subtraction operation."""
     other = _coerce_to_tensor(other)
     return self + (-other)
 

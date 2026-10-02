@@ -1,5 +1,24 @@
-scratch/
-__pycache__
+# Environments and caches
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+*.py[cod]
+
+# Test and coverage artifacts
 .coverage
-htmlcov
+htmlcov/
 coverage.json
+
+# Build and distribution
+dist/
+build/
+*.egg-info/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Scratch and exploration
+scratch/
