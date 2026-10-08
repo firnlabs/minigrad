@@ -27,13 +27,14 @@ class Optimizer(abc.ABC):
 
 
 class SGD(Optimizer):
-    """Stochastic Gradient Descent optimizer."""
+    """Stochastic Gradient Descent (SGD) optimizer."""
 
     def __init__(self, parameters: Sequence[Scalar], lr: float = 0.1) -> None:
         super().__init__(parameters)
         self.lr = lr
 
     def step(self) -> None:
+        """Updates parameter values using gradients."""
         for p in self.parameters:
             if p.grad is not None:
                 p.data -= self.lr * p.grad

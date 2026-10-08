@@ -1,13 +1,9 @@
-"""Tests for tensor/engine.py."""
-
 import numpy as np
 
 from minigrad.tensor import Tensor
 
 
 class TestTensor:
-    """Tests for Tensor class."""
-
     def test_tensor_1d_default_optional_params(self) -> None:
         data = [1.0, 2.0, 3.0]
         t = Tensor(data)

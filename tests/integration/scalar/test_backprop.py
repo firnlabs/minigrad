@@ -1,4 +1,4 @@
-"""Tests backpropagation of gradients in Scalar."""
+"""Integration tests verifying analytical vs numerical scalar gradients."""
 
 from collections.abc import Callable
 import math
@@ -9,7 +9,6 @@ from tests.verification import gradcheck
 
 
 def _check_gradient(target: Scalar, f: Callable[[float], float]) -> None:
-    """Check if the analytical gradient matches the numerical gradient."""
     assert target.grad is not None
     is_match, num_grad = gradcheck.check_gradient(grad=target.grad, f=f, x=target.data)
 
@@ -20,7 +19,6 @@ def _check_gradient(target: Scalar, f: Callable[[float], float]) -> None:
 
 
 def test_backprop_no_value_reuse() -> None:
-    """Tests backpropagation of gradients with no value reuse."""
     a = Scalar(2.0, name="a", requires_grad=True)
     b = Scalar(3.0, name="b", requires_grad=True)
     c = Scalar(4.0, name="c", requires_grad=True)
@@ -37,7 +35,6 @@ def test_backprop_no_value_reuse() -> None:
 
 
 def test_backprop_value_reuse() -> None:
-    """Tests backpropagation of gradients with value reuse."""
     a = Scalar(2.0, name="a", requires_grad=True)
     b = Scalar(3.0, name="b", requires_grad=True)
     c = a * b
@@ -54,7 +51,6 @@ def test_backprop_value_reuse() -> None:
 
 
 def test_backprop_perceptron() -> None:
-    """Tests backpropagation of gradients in a simple perceptron."""
     x1 = Scalar(1.0, name="x1")
     x2 = Scalar(2.0, name="x2")
     w1 = Scalar(3.0, name="w1", requires_grad=True)
@@ -81,7 +77,6 @@ def test_backprop_perceptron() -> None:
 
 
 def test_backprop_perceptron_mse_loss() -> None:
-    """Tests backpropagation on loss function over a simple perceptron."""
     x1 = Scalar(1.0, name="x1")
     x2 = Scalar(2.0, name="x2")
     w1 = Scalar(3.0, name="w1", requires_grad=True)

@@ -1,3 +1,5 @@
+"""Scalar autograd engine module."""
+
 from . import nn
 from . import ops
 from .engine import Scalar

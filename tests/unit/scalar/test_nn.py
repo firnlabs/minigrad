@@ -1,5 +1,3 @@
-"""Tests for `scalar/nn.py`."""
-
 from collections.abc import Sequence
 
 import pytest

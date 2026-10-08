@@ -1,5 +1,3 @@
-"""Tests for `tensor/ops.py`."""
-
 import numpy as np
 import pytest
 

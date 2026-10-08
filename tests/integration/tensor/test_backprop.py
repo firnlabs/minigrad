@@ -1,4 +1,4 @@
-"""Tests backpropagation of gradients in Tensor."""
+"""Integration tests verifying tensor backpropagation and gradient shapes."""
 
 import numpy as np
 import pytest
