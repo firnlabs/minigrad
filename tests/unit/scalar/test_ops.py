@@ -1,5 +1,3 @@
-"""Tests for `ops.py`."""
-
 import math
 from typing import Any
 

@@ -1,5 +1,3 @@
-"""Tests for `scalar/engine.py`."""
-
 from typing import Any
 
 from minigrad.scalar import Scalar

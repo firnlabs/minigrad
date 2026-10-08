@@ -1,5 +1,3 @@
-"""Tests for `optim.py`."""
-
 from collections.abc import Sequence
 
 import pytest

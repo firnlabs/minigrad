@@ -215,7 +215,14 @@ def _pow_dispatcher(self: Scalar, other: int | float) -> Scalar:
 
 
 def exp(x: Scalar | int | float) -> Scalar:
-    """Exponentiates a Scalar."""
+    """Computes exponential of a scalar value.
+
+    Args:
+        x: Input scalar or numeric value.
+
+    Returns:
+        Scalar containing the exponential value.
+    """
     x = _coerce_to_scalar(x)
     op_instance = Exp(x)
     return Scalar(
@@ -226,7 +233,14 @@ def exp(x: Scalar | int | float) -> Scalar:
 
 
 def tanh(x: Scalar | int | float) -> Scalar:
-    """Computes tanh of a Scalar."""
+    """Computes hyperbolic tangent of a scalar value.
+
+    Args:
+        x: Input scalar or numeric value.
+
+    Returns:
+        Scalar containing the hyperbolic tangent.
+    """
     x = _coerce_to_scalar(x)
     op_instance = Tanh(x)
     return Scalar(

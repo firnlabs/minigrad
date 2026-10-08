@@ -309,11 +309,27 @@ def _sum_dispatcher(self: Tensor) -> Tensor:
 
 
 def tanh(x: Tensor) -> Tensor:
+    """Applies element-wise hyperbolic tangent to a Tensor.
+
+    Args:
+        x: Input tensor.
+
+    Returns:
+        Tensor with element-wise hyperbolic tangent applied.
+    """
     op = Tanh(x)
     return Tensor(op.forward(x.data), op=op, requires_grad=x.requires_grad)
 
 
 def sum(x: Tensor) -> Tensor:
+    """Computes the sum of all elements in the tensor.
+
+    Args:
+        x: Input tensor.
+
+    Returns:
+        Tensor containing the sum.
+    """
     return _sum_dispatcher(x)
 
 
