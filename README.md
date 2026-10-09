@@ -140,7 +140,7 @@ print(f"dw:\n{w.grad}")  # [[1.0], [2.0]] (transposed x)
 
 Minigrad provides a PyTorch-like modular design pattern with `nn.Module` and `optim.SGD` for model parameter optimization.
 
-For a complete, interactive walkthrough of building and training a neural network using the scalar engine, see the [01_scalar_train_perceptron.ipynb](file:///Users/carlos/src/minigrad/notebooks/01_scalar_train_perceptron.ipynb) notebook.
+For a complete, interactive walkthrough of building and training a neural network using the scalar engine, see the [01_scalar_train_perceptron.ipynb](notebooks/01_scalar_train_perceptron.ipynb) notebook.
 
 ---
 
